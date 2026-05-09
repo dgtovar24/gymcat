@@ -7,13 +7,16 @@ if (cookie?.value !== "gymcat_admin_2026") return Astro.redirect("/admin/login")
 
 let message = "";
 
-// Load current settings
-const allSettings = await db.select().from(settings);
-const getSetting = (key: string) => allSettings.find(s => s.key === key)?.value || "";
+const allS = await db.select().from(settings);
+const getS = (key: string) => allS.find(s => s.key === key)?.value || "";
 
 if (Astro.request.method === "POST") {
   const formData = await Astro.request.formData();
-  const keys = ["ai_model", "google_maps_api_key", "google_place_id"];
+  const keys = [
+    "ai_model", "google_maps_api_key", "google_place_id",
+    "social_instagram", "social_twitter", "social_linkedin", "social_tiktok", "social_youtube",
+    "contact_email_to", "resend_api_key",
+  ];
   for (const key of keys) {
     const val = formData.get(key)?.toString() || "";
     await db.insert(settings).values({ key, value: val, updatedAt: new Date() })
@@ -22,9 +25,9 @@ if (Astro.request.method === "POST") {
   message = "✅ Configuración guardada";
 }
 
-const aiModel = getSetting("ai_model") || "deepseek-chat";
-const gmapsKey = getSetting("google_maps_api_key") || "";
-const placeId = getSetting("google_place_id") || "";
+const aiModel = getS("ai_model") || "deepseek-chat";
+const gmapsKey = getS("google_maps_api_key") || "";
+const placeId = getS("google_place_id") || "";
 ---
 
 <!doctype html>
@@ -39,7 +42,8 @@ const placeId = getSetting("google_place_id") || "";
     .ah h1 { font-size: 16px; color: white; } .ah a { color: #aaa; text-decoration: none; font-size: 14px; }
     .container { max-width: 700px; margin: 0 auto; padding: 24px; }
     .card { background: white; border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; }
-    .card h2 { font-size: 18px; margin-bottom: 16px; }
+    .card h2 { font-size: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .card h2 svg { opacity: 0.5; }
     .fg { margin-bottom: 14px; }
     .fg label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; text-transform: uppercase; }
     .fg input, .fg select { width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; }
@@ -61,8 +65,9 @@ const placeId = getSetting("google_place_id") || "";
     {message && <div class="msg msg-ok">{message}</div>}
 
     <form method="POST">
+
       <div class="card">
-        <h2>Inteligencia Artificial</h2>
+        <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Inteligencia Artificial</h2>
         <div class="fg">
           <label>Modelo de DeepSeek</label>
           <select name="ai_model">
@@ -74,7 +79,7 @@ const placeId = getSetting("google_place_id") || "";
       </div>
 
       <div class="card">
-        <h2>Google Maps</h2>
+        <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.4 8 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8z"/></svg> Google Maps</h2>
         <div class="fg">
           <label>Google Maps API Key</label>
           <input type="text" name="google_maps_api_key" value={gmapsKey} placeholder="AIzaSy..." />
@@ -84,6 +89,30 @@ const placeId = getSetting("google_place_id") || "";
           <label>Google Place ID (por defecto)</label>
           <input type="text" name="google_place_id" value={placeId} placeholder="ChIJ..." />
           <div class="hint">Place ID por defecto para buscar reseñas. Se puede sobreescribir por gimnasio.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><rect x="2" y="17" width="20" height="5" rx="2"/></svg> Redes Sociales — Quiénes Somos</h2>
+        <div class="fg"><label>Instagram</label><input type="text" name="social_instagram" value={getS("social_instagram")} placeholder="https://instagram.com/usuario" /></div>
+        <div class="fg"><label>Twitter / X</label><input type="text" name="social_twitter" value={getS("social_twitter")} placeholder="https://twitter.com/usuario" /></div>
+        <div class="fg"><label>LinkedIn</label><input type="text" name="social_linkedin" value={getS("social_linkedin")} placeholder="https://linkedin.com/in/usuario" /></div>
+        <div class="fg"><label>TikTok</label><input type="text" name="social_tiktok" value={getS("social_tiktok")} placeholder="https://tiktok.com/@usuario" /></div>
+        <div class="fg"><label>YouTube</label><input type="text" name="social_youtube" value={getS("social_youtube")} placeholder="https://youtube.com/@usuario" /></div>
+        <div class="hint">Deja vacío cualquier campo para ocultar esa red social en la página Quiénes Somos.</div>
+      </div>
+
+      <div class="card">
+        <h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><polyline points="2 5 12 12 22 5"/></svg> Contacto</h2>
+        <div class="fg">
+          <label>Email de destino</label>
+          <input type="email" name="contact_email_to" value={getS("contact_email_to")} placeholder="tovard799@gmail.com" />
+          <div class="hint">Los mensajes del formulario de contacto se enviarán a este email.</div>
+        </div>
+        <div class="fg">
+          <label>Resend API Key</label>
+          <input type="text" name="resend_api_key" value={getS("resend_api_key")} placeholder="re_..." />
+          <div class="hint">API key de <a href="https://resend.com" target="_blank" style="color:var(--color-link-blue);">Resend.com</a> para enviar emails. Si está vacía, los mensajes se guardan en archivos locales.</div>
         </div>
       </div>
 

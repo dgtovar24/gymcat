@@ -1,0 +1,98 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import { db } from "@lib/db";
+import { settings } from "@lib/db/schema";
+
+const all = await db.select().from(settings);
+const getS = (key: string, def = "") => all.find(s => s.key === key)?.value || def;
+
+const instagram = getS("social_instagram", "https://instagram.com/diegozaldivar");
+const twitter = getS("social_twitter", "https://twitter.com/diegozaldivar");
+const linkedin = getS("social_linkedin", "https://linkedin.com/in/diegozaldivar");
+const tiktok = getS("social_tiktok", "");
+const youtube = getS("social_youtube", "");
+---
+
+<BaseLayout title="Quiénes Somos" description="Conoce al equipo detrás de GymCat, el comparador de gimnasios en Cataluña." currentPath="/quienes-somos">
+
+<section class="res-section" style="background:var(--color-white);">
+  <div class="container-xl">
+
+    <div style="max-width:720px;margin:0 auto;text-align:center;">
+      <h1 style="font-size:36px;font-weight:600;margin-bottom:8px;">Qui&eacute;nes Somos</h1>
+      <p style="font-size:16px;font-weight:300;color:var(--color-mid-gray);letter-spacing:-0.2px;margin-bottom:48px;line-height:1.6;">
+        La historia detr&aacute;s de GymCat y por qu&eacute; creamos este comparador de gimnasios.
+      </p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr;gap:40px;max-width:900px;margin:0 auto;">
+      <!-- Photo -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:20px;">
+        <div style="width:180px;height:180px;border-radius:50%;overflow:hidden;background:var(--color-off-white);box-shadow:var(--shadow-card);display:flex;align-items:center;justify-content:center;border:3px solid var(--color-charcoal);">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><circle cx="12" cy="8" r="5"/><path d="M3 21v-2a7 7 0 0 1 14 0v2"/></svg>
+        </div>
+        <div>
+          <h2 style="font-size:24px;font-weight:600;text-align:center;margin-bottom:4px;">Diego Zaldivar</h2>
+          <p style="font-size:14px;font-weight:300;color:var(--color-mid-gray);text-align:center;">Fundador de GymCat</p>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          {instagram && <a href={instagram} target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--radius-8);box-shadow:var(--shadow-ring-border);text-decoration:none;font-size:13px;font-weight:500;color:var(--color-charcoal);transition:opacity 0.15s;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5"/></svg> Instagram
+          </a>}
+          {twitter && <a href={twitter} target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--radius-8);box-shadow:var(--shadow-ring-border);text-decoration:none;font-size:13px;font-weight:500;color:var(--color-charcoal);transition:opacity 0.15s;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l6 8-6 8"/><path d="M20 4l-6 8 6 8"/></svg> Twitter
+          </a>}
+          {linkedin && <a href={linkedin} target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--radius-8);box-shadow:var(--shadow-ring-border);text-decoration:none;font-size:13px;font-weight:500;color:var(--color-charcoal);transition:opacity 0.15s;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="7" cy="9" r="2"/><path d="M6.5 13h1v7h-1z"/><path d="M17 9a4 4 0 0 0-4 4v3h1.5v-3a2.5 2.5 0 0 1 5 0v3H21v-3a5 5 0 0 0-4-5z"/></svg> LinkedIn
+          </a>}
+          {tiktok && <a href={tiktok} target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--radius-8);box-shadow:var(--shadow-ring-border);text-decoration:none;font-size:13px;font-weight:500;color:var(--color-charcoal);transition:opacity 0.15s;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg> TikTok
+          </a>}
+          {youtube && <a href={youtube} target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--radius-8);box-shadow:var(--shadow-ring-border);text-decoration:none;font-size:13px;font-weight:500;color:var(--color-charcoal);transition:opacity 0.15s;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="10 8 16 12 10 16 10 8"/><path d="M2.5 9.3a3.3 3.3 0 0 1 2.2-2.3C6.3 6.3 12 6 12 6s5.7.3 7.3 1a3.3 3.3 0 0 1 2.2 2.3c.5 2 .5 6 .5 6s0 4-.5 6a3.3 3.3 0 0 1-2.2 2.3c-1.6.7-7.3 1-7.3 1s-5.7-.3-7.3-1a3.3 3.3 0 0 1-2.2-2.3C2 17.3 2 13.3 2 13.3s0-4 .5-6z"/></svg> YouTube
+          </a>}
+        </div>
+      </div>
+
+      <!-- Story -->
+      <div class="card" style="padding:28px;line-height:1.7;">
+        <h3 style="font-size:20px;font-weight:600;margin-bottom:16px;">Mi historia</h3>
+
+        <p style="font-size:14px;font-weight:300;color:var(--color-mid-gray);margin-bottom:16px;">
+          Soy <strong style="color:var(--color-charcoal);">Diego Zaldivar</strong> y me encanta ir al gimnasio. Soy de esas personas
+          que prueban diferentes gimnasios, comparan instalaciones, miran precios y horarios. Pero siempre me encontraba
+          con el mismo problema: <strong style="color:var(--color-charcoal);">no sab&iacute;a a cu&aacute;l ir.</strong>
+        </p>
+
+        <p style="font-size:14px;font-weight:300;color:var(--color-mid-gray);margin-bottom:16px;">
+          Cada vez que quer&iacute;a cambiar de gimnasio o buscar uno nuevo, ten&iacute;a que entrar en 5 o 6 webs diferentes,
+          buscar los precios (que muchas veces estaban escondidos), comparar instalaciones, leer rese&ntilde;as... Era un proceso
+          que me llevaba horas. Y lo peor: muchas veces los precios que ve&iacute;a en la web no inclu&iacute;an la matr&iacute;cula,
+          o el mantenimiento anual, o la permanencia m&iacute;nima.
+        </p>
+
+        <p style="font-size:14px;font-weight:300;color:var(--color-mid-gray);margin-bottom:16px;">
+          Hablando con amigos y conocidos, me di cuenta de que <strong style="color:var(--color-charcoal);">no era el &uacute;nico.</strong>
+          Much&iacute;simas personas ten&iacute;an exactamente el mismo problema: quer&iacute;an un gimnasio pero no sab&iacute;an
+          por d&oacute;nde empezar a buscar. &iquest;Cu&aacute;l es el m&aacute;s barato? &iquest;Cu&aacute;l tiene piscina?
+          &iquest;Cu&aacute;l abre 24 horas? &iquest;Cu&aacute;l est&aacute; m&aacute;s cerca de mi casa?
+        </p>
+
+        <p style="font-size:14px;font-weight:300;color:var(--color-mid-gray);margin-bottom:16px;">
+          As&iacute; naci&oacute; <strong style="color:var(--color-charcoal);">GymCat</strong>. Un comparador de gimnasios que
+          te muestra <strong style="color:var(--color-charcoal);">toda la verdad</strong>: precios reales con matr&iacute;cula
+          incluida, mantenimiento anual, coste total del primer a&ntilde;o, instalaciones verificadas, y un resumen de
+          lo que dice la gente en Google Maps.
+        </p>
+
+        <p style="font-size:14px;font-weight:300;color:var(--color-mid-gray);margin-bottom:0;">
+          Nuestro objetivo es simple: que <strong style="color:var(--color-charcoal);">nunca m&aacute;s pierdas horas
+          comparando gimnasios</strong>. Entra, busca, filtra, y en 2 minutos sabr&aacute;s cu&aacute;l es el mejor para ti.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</BaseLayout>
