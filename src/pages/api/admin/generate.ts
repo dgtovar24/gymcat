@@ -45,11 +45,13 @@ export async function POST({ request }: { request: Request }) {
       }
     }
 
-    // 2. Scrape website for text as fallback
+    // 2. Scrape websites for text as fallback
     const websiteUrl = formData.get("website_url")?.toString() || "";
-    if (websiteUrl) {
+    const urlsToScrape = websiteUrl ? websiteUrl.split("\n").filter(Boolean) : [];
+    const webTexts: string[] = [];
+    for (const url of urlsToScrape.slice(0, 3)) {
       try {
-        const webRes = await fetch(websiteUrl, {
+        const webRes = await fetch(url.trim(), {
           headers: { "User-Agent": "Mozilla/5.0 (compatible; GymCat/1.0)" },
           signal: AbortSignal.timeout(8000),
         });
@@ -58,12 +60,13 @@ export async function POST({ request }: { request: Request }) {
                    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
                    .replace(/<[^>]+>/g, " ")
                    .replace(/\s+/g, " ")
-                   .slice(0, 4000);
-        if (html.length > 50) webText = html;
+                   .slice(0, 2000);
+        if (html.length > 50) webTexts.push(`[${url}]\n${html}`);
       } catch {}
     }
+    if (webTexts.length > 0) webText = webTexts.join("\n\n");
 
-    // 2. Fetch Google Maps reviews if API key is configured
+    // 3. Fetch Google Maps reviews if API key is configured
     if (gmapsKey && (gymName || placeId)) {
       try {
         let pid = placeId;
@@ -100,7 +103,7 @@ export async function POST({ request }: { request: Request }) {
       }
     }
 
-    // 3. Call DeepSeek to extract structured data
+    // 4. Call DeepSeek to extract structured data
     const sources = [];
     if (pdfText) sources.push("PDF del gimnasio");
     if (webText) sources.push("web del gimnasio");

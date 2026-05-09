@@ -466,7 +466,11 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       fd.append('gym_name', document.getElementById('en').value);
       fd.append('gym_address', document.getElementById('ea').value);
       fd.append('place_id', document.getElementById('egpid').value);
-      fd.append('website_url', document.getElementById('ew').value);
+      // Send main website + additional URLs
+      var mainWeb = document.getElementById('ew').value;
+      var extraUrls = currentUrls.map(function(u) { return u.url; });
+      var allUrls = mainWeb ? [mainWeb].concat(extraUrls) : extraUrls;
+      fd.append('website_url', allUrls.join('\n'));
 
       try {
         var res = await fetch('/api/admin/generate', { method: 'POST', body: fd });
