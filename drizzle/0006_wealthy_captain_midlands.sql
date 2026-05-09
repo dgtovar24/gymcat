@@ -1,0 +1,1 @@
+ALTER TYPE "public"."gym_status" ADD VALUE 'archived';

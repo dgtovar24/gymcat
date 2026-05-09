@@ -73,6 +73,7 @@ export const gymStatusEnum = pgEnum("gym_status", [
   "inactive",
   "pending_review",
   "closed",
+  "archived",
 ]);
 
 export const priceTypeEnum = pgEnum("price_type", [
