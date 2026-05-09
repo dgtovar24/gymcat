@@ -94,9 +94,9 @@ const allGyms = await db.select().from(gyms).orderBy(asc(gyms.name));
 const allChains = await db.select().from(chains);
 const allCities = await db.select().from(cities);
 const allFacilities = await db.select().from(facilities);
-const chainMap = new Map(allChains.map(c => [c.id, c]));
-const cityMap = new Map(allCities.map(c => [c.id, c]));
-const cityProvinceMap = new Map(allCities.map(c => [c.id, c.province || ""]));
+const chainMap = new Map(allChains.map(c => [Number(c.id), c]));
+const cityMap = new Map(allCities.map(c => [Number(c.id), c]));
+const cityProvinceMap = new Map(allCities.map(c => [Number(c.id), c.province || ""]));
 
 const gymData = allGyms.map(g => ({
   id: g.id, name: g.name, slug: g.slug, address: g.address || "",
