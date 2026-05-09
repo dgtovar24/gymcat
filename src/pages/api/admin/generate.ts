@@ -32,15 +32,35 @@ export async function POST({ request }: { request: Request }) {
 
     let pdfText = "";
     let reviewText = "";
+    let webText = "";
 
     // 1. Extract PDF text
     if (file && file.size > 0) {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       pdfText = extractPDFText(buffer);
-      if (!pdfText || pdfText.length < 20) {
+      // If PDF text looks like binary garbage, discard it
+      if (pdfText && isBinaryGarbage(pdfText)) {
         pdfText = "";
       }
+    }
+
+    // 2. Scrape website for text as fallback
+    const websiteUrl = formData.get("website_url")?.toString() || "";
+    if (websiteUrl) {
+      try {
+        const webRes = await fetch(websiteUrl, {
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; GymCat/1.0)" },
+          signal: AbortSignal.timeout(8000),
+        });
+        let html = await webRes.text();
+        html = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+                   .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+                   .replace(/<[^>]+>/g, " ")
+                   .replace(/\s+/g, " ")
+                   .slice(0, 4000);
+        if (html.length > 50) webText = html;
+      } catch {}
     }
 
     // 2. Fetch Google Maps reviews if API key is configured
@@ -83,6 +103,7 @@ export async function POST({ request }: { request: Request }) {
     // 3. Call DeepSeek to extract structured data
     const sources = [];
     if (pdfText) sources.push("PDF del gimnasio");
+    if (webText) sources.push("web del gimnasio");
     if (reviewText) sources.push("reseñas de Google Maps");
 
     const systemPrompt = `Eres un extractor de datos para GymCat. Analiza TODA la información disponible y extrae TODOS los datos que puedas encontrar. NO devuelvas campos vacíos si encuentras información — rellena TODO lo que detectes.
@@ -106,8 +127,9 @@ IMPORTANTE: Busca precios en formatos españoles (29,99€). Busca instalaciones
 Responde SOLO JSON válido.`;
 
     const userContent = [
-      pdfText ? `CONTENIDO DEL PDF:\n${pdfText.slice(0, 6000)}` : "",
-      reviewText ? `RESEÑAS DE GOOGLE MAPS:\n${reviewText.slice(0, 6000)}` : "",
+      pdfText ? `CONTENIDO DEL PDF:\n${pdfText.slice(0, 4000)}` : "",
+      webText ? `CONTENIDO DE LA WEB:\n${webText.slice(0, 4000)}` : "",
+      reviewText ? `RESEÑAS DE GOOGLE MAPS:\n${reviewText.slice(0, 4000)}` : "",
       gymName ? `Nombre sugerido: ${gymName}` : "",
     ].filter(Boolean).join("\n\n---\n\n");
 
@@ -200,6 +222,12 @@ function extractPlaceId(input: string): string {
   // If looks like an ID
   if (/^[A-Za-z0-9_-]{10,}$/.test(input.trim())) return input.trim();
   return "";
+}
+
+function isBinaryGarbage(text: string): boolean {
+  // If >30% of chars are non-printable, it's binary garbage
+  const nonPrintable = text.replace(/[\x20-\x7E\xC0-\xFF\n\r\t ]/g, "").length;
+  return text.length > 0 && nonPrintable / text.length > 0.3;
 }
 
 function json(data: any, status = 200) {

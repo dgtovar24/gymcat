@@ -466,6 +466,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       fd.append('gym_name', document.getElementById('en').value);
       fd.append('gym_address', document.getElementById('ea').value);
       fd.append('place_id', document.getElementById('egpid').value);
+      fd.append('website_url', document.getElementById('ew').value);
 
       try {
         var res = await fetch('/api/admin/generate', { method: 'POST', body: fd });
