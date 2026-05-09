@@ -105,7 +105,8 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
     body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #242424; }
     .ah { background: #242424; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
     .ah h1 { font-size: 18px; } .ah a { color: #aaa; text-decoration: none; font-size: 14px; }
-    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .container { width: 100%; margin: 0; padding: 16px; }
+    @media (min-width: 640px) { .container { padding: 24px; } }
     table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
     th { background: #f9f9f9; font-weight: 600; color: #555; text-transform: uppercase; font-size: 11px; }
@@ -179,7 +180,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
             <button class="btn btn-edit" onclick={`window._openEdit(${gym.id})`}>Editar</button>
             <button class="btn" style="background:#555;color:white;" onclick={`window._analyze(${gym.id})`}>Analizar</button>
             {gym.status !== 'archived' ? <button class="btn" style="background:#f59e0b;color:white;" onclick={`document.getElementById('archive-form-${gym.id}').submit()`}>Archivar</button> : <button class="btn" style="background:#22c55e;color:white;" onclick={`document.getElementById('unarchive-form-${gym.id}').submit()`}>Recuperar</button>}
-            <button class="btn" style="background:#ef4444;color:white;" onclick={`if(confirm('¿Eliminar ${gym.name.replace(/'/g, "\\'")}?'))document.getElementById('delete-form-${gym.id}').submit()`}>Eliminar</button>
+            <button class="btn" style="background:#ef4444;color:white;" onclick="if(confirm('¿Eliminar este gimnasio?'))document.getElementById('delete-form-{gym.id}').submit()">Eliminar</button>
             <form id={`archive-form-${gym.id}`} method="POST" style="display:none;"><input type="hidden" name="action" value="archive"><input type="hidden" name="gym_id" value={gym.id}></form>
             <form id={`unarchive-form-${gym.id}`} method="POST" style="display:none;"><input type="hidden" name="action" value="unarchive"><input type="hidden" name="gym_id" value={gym.id}></form>
             <form id={`delete-form-${gym.id}`} method="POST" style="display:none;"><input type="hidden" name="action" value="delete"><input type="hidden" name="gym_id" value={gym.id}></form>
