@@ -1,0 +1,160 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import { db } from "@lib/db";
+import { gyms, chains, facilities, gymFacilities } from "@lib/db/schema";
+import { eq, asc } from "drizzle-orm";
+
+const allGyms = await db.select({
+  id: gyms.id, name: gyms.name, slug: gyms.slug, imageUrl: gyms.imageUrl,
+}).from(gyms).where(eq(gyms.status, "active")).orderBy(asc(gyms.name));
+
+// Check query params for pre-selected gyms
+const url = new URL(Astro.request.url);
+const gym1Slug = url.searchParams.get("g1");
+const gym2Slug = url.searchParams.get("g2");
+
+let gym1: any = null;
+let gym2: any = null;
+let gym1Facilities: string[] = [];
+let gym2Facilities: string[] = [];
+let chain1: any = null;
+let chain2: any = null;
+
+if (gym1Slug && gym2Slug) {
+  const g1 = await db.select().from(gyms).where(eq(gyms.slug, gym1Slug)).limit(1);
+  const g2 = await db.select().from(gyms).where(eq(gyms.slug, gym2Slug)).limit(1);
+  if (g1.length > 0 && g2.length > 0) {
+    gym1 = g1[0];
+    gym2 = g2[0];
+    const f1 = await db.select({ slug: facilities.slug, name: facilities.name })
+      .from(gymFacilities).innerJoin(facilities, eq(gymFacilities.facilityId, facilities.id))
+      .where(eq(gymFacilities.gymId, gym1.id));
+    const f2 = await db.select({ slug: facilities.slug, name: facilities.name })
+      .from(gymFacilities).innerJoin(facilities, eq(gymFacilities.facilityId, facilities.id))
+      .where(eq(gymFacilities.gymId, gym2.id));
+    gym1Facilities = f1.map(f => f.slug);
+    gym2Facilities = f2.map(f => f.slug);
+    if (gym1.chainId) { const c = await db.select().from(chains).where(eq(chains.id, gym1.chainId)).limit(1); if (c.length) chain1 = c[0]; }
+    if (gym2.chainId) { const c = await db.select().from(chains).where(eq(chains.id, gym2.chainId)).limit(1); if (c.length) chain2 = c[0]; }
+  }
+}
+
+const gymsJSON = JSON.stringify(allGyms.map(g => ({ id: g.id, name: g.name, slug: g.slug, imageUrl: g.imageUrl })));
+---
+
+<BaseLayout title="Comparador de Gimnasios" description="Compara dos gimnasios cara a cara: precios, instalaciones y valoraciones.">
+  <section class="res-section" style="background:var(--color-white);">
+    <div class="container-xl">
+
+      <div style="max-width:900px;margin:0 auto;">
+        <h1 style="text-align:center;margin-bottom:8px;">Comparador de Gimnasios</h1>
+        <p style="text-align:center;font-size:15px;font-weight:300;color:var(--color-mid-gray);margin-bottom:32px;">
+          Selecciona dos gimnasios y comp&aacute;ralos cara a cara.
+        </p>
+
+        <!-- Selectors -->
+        <div class="res-grid res-grid-2" style="gap:16px;margin-bottom:32px;">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px;text-transform:uppercase;">Gimnasio A</label>
+            <select id="gym-select-1" onchange="goCompare()" style="width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:var(--radius-8);font-size:14px;font-family:inherit;background:white;">
+              <option value="">Selecciona un gimnasio...</option>
+              {allGyms.map(g => <option value={g.slug} selected={gym1Slug === g.slug}>{g.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px;text-transform:uppercase;">Gimnasio B</label>
+            <select id="gym-select-2" onchange="goCompare()" style="width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:var(--radius-8);font-size:14px;font-family:inherit;background:white;">
+              <option value="">Selecciona un gimnasio...</option>
+              {allGyms.map(g => <option value={g.slug} selected={gym2Slug === g.slug}>{g.name}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <!-- Comparison table -->
+        {gym1 && gym2 ? (
+          <div class="card" style="padding:28px;">
+
+            <!-- Headers -->
+            <div class="res-grid res-grid-2" style="gap:20px;margin-bottom:20px;text-align:center;">
+              <div>
+                {gym1.imageUrl && <img src={gym1.imageUrl} alt={gym1.name} style="width:100%;height:140px;object-fit:cover;border-radius:var(--radius-8);margin-bottom:8px;" />}
+                <h3 style="font-size:16px;margin-bottom:2px;"><a href={`/gimnasios/${gym1.slug}`} style="color:var(--color-charcoal);text-decoration:none;">{gym1.name}</a></h3>
+                {chain1 && <span style="font-size:11px;color:var(--color-mid-gray);">{chain1.name}</span>}
+              </div>
+              <div>
+                {gym2.imageUrl && <img src={gym2.imageUrl} alt={gym2.name} style="width:100%;height:140px;object-fit:cover;border-radius:var(--radius-8);margin-bottom:8px;" />}
+                <h3 style="font-size:16px;margin-bottom:2px;"><a href={`/gimnasios/${gym2.slug}`} style="color:var(--color-charcoal);text-decoration:none;">{gym2.name}</a></h3>
+                {chain2 && <span style="font-size:11px;color:var(--color-mid-gray);">{chain2.name}</span>}
+              </div>
+            </div>
+
+            <!-- Comparison rows -->
+            <table class="admin-table" style="width:100%;">
+              <thead><tr><th style="width:28%;"></th><th style="width:36%;text-align:center;">Gimnasio A</th><th style="width:36%;text-align:center;">Gimnasio B</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td style="font-weight:600;">Precio mensual</td>
+                  <td style="text-align:center;font-family:var(--font-mono);">{gym1.monthlyPriceLow ? Number(gym1.monthlyPriceLow).toFixed(0) + '€' : '—'}</td>
+                  <td style="text-align:center;font-family:var(--font-mono);">{gym2.monthlyPriceLow ? Number(gym2.monthlyPriceLow).toFixed(0) + '€' : '—'}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Matr&iacute;cula</td>
+                  <td style="text-align:center;font-family:var(--font-mono);">{gym1.matriculaFee ? Number(gym1.matriculaFee).toFixed(0) + '€' : '<span style="color:#22c55e;">Gratis</span>'}</td>
+                  <td style="text-align:center;font-family:var(--font-mono);">{gym2.matriculaFee ? Number(gym2.matriculaFee).toFixed(0) + '€' : '<span style="color:#22c55e;">Gratis</span>'}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Mantenimiento anual</td>
+                  <td style="text-align:center;font-family:var(--font-mono);">{gym1.annualMaintenanceFee ? Number(gym1.annualMaintenanceFee).toFixed(0) + '€' : '—'}</td>
+                  <td style="text-align:center;font-family:var(--font-mono);">{gym2.annualMaintenanceFee ? Number(gym2.annualMaintenanceFee).toFixed(0) + '€' : '—'}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Coste total 1er a&ntilde;o</td>
+                  <td style="text-align:center;font-family:var(--font-mono);font-weight:600;font-size:15px;">
+                    {gym1.monthlyPriceLow ? ((Number(gym1.monthlyPriceLow) * 12) + Number(gym1.matriculaFee || 0) + Number(gym1.annualMaintenanceFee || 0)).toFixed(0) + '€' : '—'}
+                  </td>
+                  <td style="text-align:center;font-family:var(--font-mono);font-weight:600;font-size:15px;">
+                    {gym2.monthlyPriceLow ? ((Number(gym2.monthlyPriceLow) * 12) + Number(gym2.matriculaFee || 0) + Number(gym2.annualMaintenanceFee || 0)).toFixed(0) + '€' : '—'}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Abierto 24h</td>
+                  <td style="text-align:center;">{gym1.isOpen247 ? '<span style="color:#22c55e;font-weight:500;">S&iacute;</span>' : 'No'}</td>
+                  <td style="text-align:center;">{gym2.isOpen247 ? '<span style="color:#22c55e;font-weight:500;">S&iacute;</span>' : 'No'}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Direcci&oacute;n</td>
+                  <td style="text-align:center;font-size:13px;color:var(--color-mid-gray);">{gym1.address || '—'}</td>
+                  <td style="text-align:center;font-size:13px;color:var(--color-mid-gray);">{gym2.address || '—'}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Tel&eacute;fono</td>
+                  <td style="text-align:center;">{gym1.phone ? `<a href="tel:${gym1.phone}" style="color:var(--color-link-blue);">${gym1.phone}</a>` : '—'}</td>
+                  <td style="text-align:center;">{gym2.phone ? `<a href="tel:${gym2.phone}" style="color:var(--color-link-blue);">${gym2.phone}</a>` : '—'}</td>
+                </tr>
+              </tbody>
+            </table>
+
+          </div>
+        ) : (
+          <div class="card" style="text-align:center;padding:48px 24px;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" style="margin-bottom:12px;">
+              <rect x="2" y="2" width="9" height="20" rx="2"/><rect x="13" y="2" width="9" height="20" rx="2"/>
+            </svg>
+            <p style="font-size:15px;color:var(--color-mid-gray);">Selecciona dos gimnasios para compararlos</p>
+          </div>
+        )}
+
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    function goCompare() {
+      var g1 = document.getElementById('gym-select-1').value;
+      var g2 = document.getElementById('gym-select-2').value;
+      if (g1 && g2) {
+        window.location = '/comparar?g1=' + g1 + '&g2=' + g2;
+      }
+    }
+  </script>
+</BaseLayout>
