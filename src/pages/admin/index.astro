@@ -484,9 +484,16 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
           if (d.is_open_247) { document.getElementById('e247').checked = true; document.getElementById('e247').parentElement.style.background = '#dcfce7'; }
           if (d.facilities && d.facilities.length) { cf = d.facilities; rf();highlightFacilities(); }
           var src = data.sources || {};
-          var parts = ['Formulario rellenado'];
+          var filled = data.filledFields || [];
+          var parts = [];
+          if (filled.length) {
+            parts.push(filled.length + ' campos rellenados (' + filled.join(', ') + ')');
+          } else {
+            parts.push('No se pudo extraer informaci\u00f3n');
+          }
           if (src.hasPdf) parts.push('PDF procesado');
-          if (src.hasReviews) parts.push(src.reviewCount + ' reseñas analizadas');
+          if (src.hasReviews) parts.push(src.reviewCount + ' rese\u00f1as analizadas');
+          if (!src.hasPdf && !src.hasReviews) parts.push('Sin fuentes de datos');
           status.style.background = '#dcfce7'; status.style.color = '#166534';
           status.textContent = parts.join(' · ');
         } else {

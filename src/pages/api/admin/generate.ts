@@ -135,12 +135,37 @@ Responde SOLO JSON válido. Valores null para lo que no encuentres.`;
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "{}";
-    const extracted = JSON.parse(content);
+    let extracted: any;
+    try {
+      extracted = JSON.parse(content);
+    } catch {
+      extracted = {};
+    }
+
+    // Count how many fields were filled
+    const filledFields: string[] = [];
+    if (extracted.name) filledFields.push("Nombre");
+    if (extracted.address) filledFields.push("Dirección");
+    if (extracted.phone) filledFields.push("Teléfono");
+    if (extracted.website) filledFields.push("Web");
+    if (extracted.description) filledFields.push("Descripción");
+    if (extracted.monthly_price_low) filledFields.push("Precio");
+    if (extracted.matricula_fee != null) filledFields.push("Matrícula");
+    if (extracted.annual_maintenance_fee) filledFields.push("Mantenimiento");
+    if (extracted.facilities?.length) filledFields.push("Instalaciones");
+    if (extracted.is_open_247) filledFields.push("24h");
+    if (extracted.ai_summary_pros?.length || extracted.ai_summary_cons?.length) filledFields.push("Reseñas");
 
     return json({
       success: true,
       data: extracted,
-      sources: { hasPdf: !!pdfText, hasReviews: !!reviewText, reviewCount: reviewText ? reviewText.split("Reseña").length - 1 : 0 },
+      filledFields,
+      sources: {
+        hasPdf: !!pdfText,
+        pdfLength: pdfText.length,
+        hasReviews: !!reviewText,
+        reviewCount: reviewText ? reviewText.split("Reseña").length - 1 : 0,
+      },
     });
 
   } catch (error: any) {
