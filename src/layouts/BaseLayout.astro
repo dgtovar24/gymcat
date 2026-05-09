@@ -1,0 +1,64 @@
+---
+import Header from "@components/ui/Header.astro";
+import Footer from "@components/ui/Footer.astro";
+import "@styles/global.css";
+
+export interface Props {
+  title?: string;
+  description?: string;
+  currentPath?: string;
+}
+
+const {
+  title,
+  description,
+  currentPath = Astro.url?.pathname || "/",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="/GymCatLogo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&family=Roboto+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title ? `${title} | GymCat` : "GymCat — Comparador de Gimnasios"}</title>
+    <meta
+      name="description"
+      content={description || "Compara precios, instalaciones y horarios de gimnasios en Cataluña. Transparencia total con datos actualizados por IA."}
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title || "Gymcat — Comparador de Gimnasios"} />
+    <meta property="og:description" content={description || "Compara precios, instalaciones y horarios de gimnasios en Cataluña."} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Gymcat" />
+
+    <!-- Schema Markup: WebSite -->
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "GymCat",
+      url: "https://gymcat.es",
+      description: "Comparador inteligente de gimnasios en Cataluña",
+      inLanguage: "es",
+    })} />
+
+    <slot name="head" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </head>
+  <body class="min-h-screen flex flex-col bg-white text-charcoal">
+    <Header currentPath={currentPath} />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

@@ -1,0 +1,38 @@
+{
+  "name": "gymcat",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "eslint . --ext .ts,.tsx,.astro",
+    "format": "prettier --write .",
+    "db:migrate": "tsx --env-file=.env scripts/db/migrate.ts",
+    "db:seed": "tsx --env-file=.env scripts/db/seed.ts",
+    "scrape": "tsx --env-file=.env scripts/scrape/index.ts",
+    "pipeline": "tsx --env-file=.env scripts/pipeline/index.ts"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.0",
+    "@astrojs/vercel": "^8.0.0",
+    "astro": "^5.0.0",
+    "chart.js": "^4.4.0",
+    "drizzle-orm": "^0.38.0",
+    "postgres": "^3.4.0",
+    "typescript": "^5.7.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.4.0",
+    "prettier-plugin-astro": "^0.14.0",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.19.0",
+    "drizzle-kit": "^0.28.0"
+  }
+}

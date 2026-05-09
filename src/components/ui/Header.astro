@@ -1,0 +1,34 @@
+---
+export interface Props { currentPath?: string; }
+const { currentPath = "/" } = Astro.props;
+const navItems = [{ label: "Gimnasios", href: "/gimnasios" },{ label: "Mapa", href: "/mapa" },{ label: "Guía", href: "/guia" }];
+---
+
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-ring-border">
+  <nav class="container-xl flex items-center justify-between" style="padding-top:12px;padding-bottom:12px;" aria-label="Main navigation">
+    <a href="/" class="flex items-center gap-2 no-underline text-midnight hover:opacity-70 transition-opacity">
+      <img src="/GymCatLogo.png" alt="GymCat" style="height:28px;width:auto;" />
+      <span style="font-family:var(--font-display);font-weight:600;font-size:18px;">GymCat</span>
+    </a>
+    <div class="hide-mobile" style="display:flex;align-items:center;gap:24px;">
+      {navItems.map((item) => (<a href={item.href} class="nav-link" style={`font-size:14px;font-weight:500;color:${currentPath.startsWith(item.href)?'var(--color-charcoal)':'var(--color-mid-gray)'}`}>{item.label}</a>))}
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <a href="/admin" class="hide-mobile nav-link" style="font-size:13px;color:var(--color-mid-gray);">Admin</a>
+      <a href="/gimnasios" class="btn-primary" style="font-size:13px;padding:7px 16px;text-decoration:none;">Buscar</a>
+      <!-- Mobile menu button -->
+      <button class="show-mobile" onclick="document.getElementById('mobile-menu').classList.toggle('active')" style="background:none;border:none;font-size:22px;cursor:pointer;padding:4px 8px;color:var(--color-charcoal);" aria-label="Menú">☰</button>
+    </div>
+  </nav>
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="show-mobile" style="display:none;background:var(--color-white);border-top:1px solid rgba(34,42,53,0.08);padding:8px 0;">
+    {navItems.map((item) => (<a href={item.href} style="display:block;padding:12px 16px;font-size:15px;color:var(--color-charcoal);text-decoration:none;border-bottom:1px solid rgba(34,42,53,0.04);">{item.label}</a>))}
+    <a href="/admin" style="display:block;padding:12px 16px;font-size:15px;color:var(--color-mid-gray);text-decoration:none;">Admin</a>
+  </div>
+</header>
+
+<style>
+  .show-mobile { display: none; }
+  @media (max-width: 639px) { .show-mobile { display: block; } }
+  #mobile-menu.active { display: block !important; }
+</style>

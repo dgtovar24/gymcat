@@ -1,0 +1,127 @@
+---
+import { db } from "@lib/db";
+import { gyms, gymImages } from "@lib/db/schema";
+import { eq, asc } from "drizzle-orm";
+import fs from "node:fs";
+import path from "node:path";
+
+const cookie = Astro.cookies.get("admin_auth");
+if (cookie?.value !== "gymcat_admin_2026") return Astro.redirect("/admin/login");
+
+let message = "";
+
+if (Astro.request.method === "POST") {
+  try {
+    const formData = await Astro.request.formData();
+    const file = formData.get("image") as File | null;
+    const gymId = parseInt(formData.get("gym_id")?.toString() || "0");
+
+    if (file && file.size > 0 && gymId) {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const filename = `gym-${gymId}-${Date.now()}.${ext}`;
+      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      fs.mkdirSync(uploadDir, { recursive: true });
+      fs.writeFileSync(path.join(uploadDir, filename), buffer);
+
+      const imageUrl = `/uploads/${filename}`;
+
+      // Get current sort order
+      const existing = await db.select({ id: gymImages.id }).from(gymImages).where(eq(gymImages.gymId, gymId));
+      const nextOrder = existing.length;
+
+      await db.insert(gymImages).values({ gymId, imageUrl, sortOrder: nextOrder });
+
+      // Also update main imageUrl if it's the first image
+      if (nextOrder === 0) {
+        await db.update(gyms).set({ imageUrl, updatedAt: new Date() }).where(eq(gyms.id, gymId));
+      }
+
+      message = `✅ Imagen subida: ${imageUrl} (${nextOrder + 1} imágenes totales)`;
+    }
+  } catch (e: any) {
+    message = `❌ Error: ${e.message}`;
+  }
+}
+
+// Handle delete
+const url = new URL(Astro.request.url);
+if (url.searchParams.get("delete")) {
+  const deleteId = parseInt(url.searchParams.get("delete")!);
+  await db.delete(gymImages).where(eq(gymImages.id, deleteId));
+  message = "✅ Imagen eliminada";
+}
+
+const allGyms = await db.select({ id: gyms.id, name: gyms.name, imageUrl: gyms.imageUrl }).from(gyms).orderBy(asc(gyms.name));
+
+// Load all images per gym
+const allImages = await db.select().from(gymImages).orderBy(asc(gymImages.sortOrder));
+const imageMap = new Map<number, typeof allImages>();
+for (const img of allImages) {
+  if (!imageMap.has(img.gymId)) imageMap.set(img.gymId, []);
+  imageMap.get(img.gymId)!.push(img);
+}
+---
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Galería — Gymcat Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #242424; }
+    .ah { background: #242424; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .ah h1 { font-size: 18px; } .ah a { color: #aaa; text-decoration: none; font-size: 14px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .msg { padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
+    .msg-ok { background: #dcfce7; color: #166534; } .msg-err { background: #fee2e2; color: #991b1b; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .card { background: white; border-radius: 8px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .card h3 { font-size: 14px; margin-bottom: 8px; }
+    .card .imgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px; margin-bottom: 10px; }
+    .card .imgs .thumb { position: relative; aspect-ratio: 1; overflow: hidden; border-radius: 4px; }
+    .card .imgs .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .card .imgs .thumb .del { position: absolute; top: 2px; right: 2px; background: rgba(239,68,68,0.9); color: white; border: none; border-radius: 3px; width: 18px; height: 18px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; }
+    .card .imgs .thumb:hover .del { opacity: 1; }
+    .card form { display: flex; gap: 6px; align-items: center; }
+    .card input[type="file"] { flex: 1; font-size: 11px; }
+    .btn { padding: 5px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 500; background: #242424; color: white; }
+    .count { font-size: 11px; color: #888; }
+  </style>
+</head>
+<body>
+  <header class="ah">
+    <h1>Galer&iacute;a de im&aacute;genes</h1>
+    <div style="display:flex;gap:16px;"><a href="/admin">&larr; Volver al panel</a></div>
+  </header>
+  <div class="container">
+    {message && <div class={`msg ${message.startsWith('✅') ? 'msg-ok' : 'msg-err'}`}>{message}</div>}
+    <div class="grid">
+      {allGyms.map(gym => {
+        const imgs = imageMap.get(gym.id) || [];
+        return (
+          <div class="card">
+            <h3>{gym.name} <span class="count">({imgs.length} imgs)</span></h3>
+            <div class="imgs">
+              {imgs.map(img => (
+                <div class="thumb">
+                  <img src={img.imageUrl} alt="" loading="lazy" />
+                  <a href={`?delete=${img.id}`} class="del" title="Eliminar" onclick="return confirm('¿Eliminar esta imagen?')">×</a>
+                </div>
+              ))}
+              {imgs.length === 0 && <span style="font-size:12px;color:#aaa;padding:20px 0;">Sin imágenes</span>}
+            </div>
+            <form method="POST" enctype="multipart/form-data">
+              <input type="hidden" name="gym_id" value={gym.id}>
+              <input type="file" name="image" accept="image/*" required>
+              <button type="submit" class="btn">+ Añadir</button>
+            </form>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</body>
+</html>

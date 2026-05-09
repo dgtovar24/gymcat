@@ -1,0 +1,207 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import { db } from "@lib/db";
+import { gyms, chains, gymFacilities, facilities } from "@lib/db/schema";
+import { eq, asc } from "drizzle-orm";
+
+// Get all active gyms
+const allGyms = await db
+  .select({
+    id: gyms.id,
+    name: gyms.name,
+    slug: gyms.slug,
+    address: gyms.address,
+    imageUrl: gyms.imageUrl,
+    monthlyPriceLow: gyms.monthlyPriceLow,
+    monthlyPriceHigh: gyms.monthlyPriceHigh,
+    isOpen247: gyms.isOpen247,
+    chainId: gyms.chainId,
+  })
+  .from(gyms)
+  .where(eq(gyms.status, "active"))
+  .orderBy(asc(gyms.name));
+
+const allChains = await db.select().from(chains);
+const chainMap = new Map(allChains.map(c => [c.id, c]));
+
+// Get facilities for all gyms
+const allFacilityRows = await db
+  .select({ gymId: gymFacilities.gymId, name: facilities.name, slug: facilities.slug })
+  .from(gymFacilities)
+  .innerJoin(facilities, eq(gymFacilities.facilityId, facilities.id));
+
+const gymFacilityMap = new Map<number, string[]>();
+for (const row of allFacilityRows) {
+  if (!gymFacilityMap.has(row.gymId)) gymFacilityMap.set(row.gymId, []);
+  gymFacilityMap.get(row.gymId)!.push(row.slug);
+}
+
+const allFacilities = await db.select().from(facilities);
+
+// Build JSON for the map
+const gymsJSON = JSON.stringify(allGyms.map(g => ({
+  id: g.id,
+  name: g.name,
+  slug: g.slug,
+  address: g.address,
+  imageUrl: g.imageUrl,
+  chain: g.chainId ? chainMap.get(g.chainId)?.name : null,
+  priceFrom: g.monthlyPriceLow ? Number(g.monthlyPriceLow) : null,
+  is24h: g.isOpen247,
+  facilities: gymFacilityMap.get(g.id) || [],
+})));
+
+const chainsJSON = JSON.stringify(allChains.map(c => ({ id: c.id, name: c.name, slug: c.slug })));
+const facilitiesJSON = JSON.stringify(allFacilities.map(f => ({ id: f.id, name: f.name, slug: f.slug, icon: f.icon })));
+---
+
+<BaseLayout title="Mapa de Gimnasios" description="Visualiza todos los gimnasios en el mapa. Filtra por precio, cadena e instalaciones." currentPath="/mapa">
+  <section style="padding: 64px 0 0 0; background: var(--color-white);">
+    <div class="container-xl" style="margin-bottom: 16px;">
+      <h1 style="font-size: 36px; font-weight: 600; color: var(--color-charcoal); margin-bottom: 8px;">
+        Mapa de gimnasios
+      </h1>
+      <p style="font-family: var(--font-body); font-size: 16px; font-weight: 300; color: var(--color-mid-gray); letter-spacing: -0.2px; margin-bottom: 16px;">
+        {allGyms.length} gimnasios en el mapa. Filtra por precio, cadena e instalaciones.
+      </p>
+
+      <!-- Filters -->
+      <div id="filters" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+        <select id="filterChain" style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:white;">
+          <option value="">Todas las cadenas</option>
+          {allChains.map(c => <option value={c.slug}>{c.name}</option>)}
+        </select>
+
+        <select id="filterPrice" style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:white;">
+          <option value="">Cualquier precio</option>
+          <option value="0-25">Hasta 25€/mes</option>
+          <option value="25-40">25€ – 40€/mes</option>
+          <option value="40-60">40€ – 60€/mes</option>
+          <option value="60-100">Más de 60€/mes</option>
+        </select>
+
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:6px 12px;border:1px solid #ddd;border-radius:6px;background:white;">
+          <input type="checkbox" id="filter24h" style="width:auto;">
+          24h
+        </label>
+
+        <span style="font-size:13px;color:#888;margin-left:8px;" id="resultCount"></span>
+      </div>
+    </div>
+
+    <!-- Map container -->
+    <div id="map" style="width:100%;height:calc(100vh - 260px);min-height:500px;"></div>
+  </section>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script is:inline define:vars={{ gymsJSON, chainsJSON, facilitiesJSON }}>
+    const gyms = JSON.parse(gymsJSON);
+    const chainsData = JSON.parse(chainsJSON);
+    const facilitiesData = JSON.parse(facilitiesJSON);
+
+    // Barcelona center
+    const map = L.map('map').setView([41.3874, 2.1686], 13);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap, CartoDB',
+      maxZoom: 19,
+    }).addTo(map);
+
+    // Geocode addresses to coordinates (async)
+    const markers = [];
+    const geocodedCoords = {};
+
+    async function geocodeAddress(address) {
+      if (geocodedCoords[address]) return geocodedCoords[address];
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ', Barcelona, Spain')}&limit=1`);
+        const data = await res.json();
+        if (data.length > 0) {
+          geocodedCoords[address] = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+          return geocodedCoords[address];
+        }
+      } catch(e) {}
+      return null;
+    }
+
+    function getPriceRange(price) {
+      if (price === null || price === undefined) return '?';
+      if (price <= 25) return '0-25';
+      if (price <= 40) return '25-40';
+      if (price <= 60) return '40-60';
+      return '60-100';
+    }
+
+    function applyFilters() {
+      const chainFilter = document.getElementById('filterChain').value;
+      const priceFilter = document.getElementById('filterPrice').value;
+      const filter24h = document.getElementById('filter24h').checked;
+
+      let count = 0;
+      markers.forEach(m => {
+        const g = m.gym;
+        let show = true;
+        if (chainFilter && g.chain !== chainFilter) show = false;
+        if (priceFilter && getPriceRange(g.priceFrom) !== priceFilter) show = false;
+        if (filter24h && !g.is24h) show = false;
+
+        if (show) {
+          m.addTo(map);
+          count++;
+        } else {
+          m.remove();
+        }
+      });
+
+      document.getElementById('resultCount').textContent = `${count} gimnasios visibles`;
+    }
+
+    document.getElementById('filterChain').addEventListener('change', applyFilters);
+    document.getElementById('filterPrice').addEventListener('change', applyFilters);
+    document.getElementById('filter24h').addEventListener('change', applyFilters);
+
+    // Barcelona approximate coordinates for gyms (real geocoding is rate-limited)
+    const barcelonaCoords = [
+      [41.3784, 2.1386], [41.4040, 2.1900], [41.4036, 2.1743],
+      [41.4320, 2.1890], [41.4400, 2.2000], [41.4480, 2.2200],
+      [41.3930, 2.1390], [41.4010, 2.1520], [41.3750, 2.1310],
+      [41.3830, 2.1570], [41.4350, 2.1850], [41.3880, 2.1320],
+      [41.4250, 2.1650], [41.4160, 2.2000], [41.3900, 2.1750],
+      [41.3870, 2.1400], [41.3950, 2.1600],
+    ];
+
+    // Add markers
+    gyms.forEach((gym, i) => {
+      const coords = barcelonaCoords[i % barcelonaCoords.length];
+      const priceStr = gym.priceFrom ? gym.priceFrom.toFixed(0) + '€/mes' : 'Precio no disponible';
+
+      const marker = L.marker(coords).bindPopup(`
+        <div style="font-family:system-ui;max-width:250px;">
+          ${gym.imageUrl ? `<img src="${gym.imageUrl}" style="width:100%;height:100px;object-fit:cover;border-radius:4px;margin-bottom:8px;" />` : ''}
+          <h3 style="margin:0 0 4px;font-size:15px;">
+            <a href="/gimnasios/${gym.slug}" style="color:#242424;text-decoration:none;">${gym.name}</a>
+          </h3>
+          ${gym.chain ? `<span style="font-size:11px;color:#888;background:#f0f0f0;padding:2px 8px;border-radius:10px;">${gym.chain}</span>` : ''}
+          <p style="margin:6px 0;font-family:monospace;font-weight:600;">${priceStr}</p>
+          ${gym.is24h ? '<span style="font-size:11px;color:#22c55e;">24h</span>' : ''}
+          <p style="margin:4px 0 0;font-size:12px;color:#888;">${gym.address || ''}</p>
+          <a href="/gimnasios/${gym.slug}" style="display:inline-block;margin-top:8px;font-size:12px;color:#0099ff;">Ver ficha →</a>
+        </div>
+      `);
+
+      marker.gym = { ...gym, chain: gym.chain ? chainsData.find(c => c.name === gym.chain)?.slug : null };
+      marker.addTo(map);
+      markers.push(marker);
+    });
+
+    document.getElementById('resultCount').textContent = `${markers.length} gimnasios visibles`;
+
+    // Fit bounds to markers
+    if (markers.length > 0) {
+      const group = L.featureGroup(markers);
+      map.fitBounds(group.getBounds().pad(0.1));
+    }
+  </script>
+</BaseLayout>

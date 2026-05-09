@@ -1,0 +1,64 @@
+---
+// Simple admin login
+let error = "";
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  const username = formData.get("username")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if (username === "admin" && password === "admin123") {
+    Astro.cookies.set("admin_auth", "gymcat_admin_2026", {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24, // 24 hours
+    });
+    return Astro.redirect("/admin");
+  } else {
+    error = "Usuario o contraseña incorrectos";
+  }
+}
+---
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Login — Gymcat</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-box { background: white; border-radius: 12px; padding: 40px; width: 380px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+    .login-box h1 { font-size: 24px; margin-bottom: 8px; color: #242424; }
+    .login-box p { color: #888; font-size: 14px; margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; }
+    .form-group input { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; }
+    .btn { width: 100%; padding: 12px; background: #242424; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .btn:hover { opacity: 0.9; }
+    .error { background: #fee2e2; color: #991b1b; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h1>Gymcat Admin</h1>
+    <p>Acceso restringido al panel de administración</p>
+
+    {error && <div class="error">{error}</div>}
+
+    <form method="POST">
+      <div class="form-group">
+        <label>Usuario</label>
+        <input type="text" name="username" placeholder="admin" required autofocus>
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" name="password" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn">Iniciar sesión</button>
+    </form>
+  </div>
+</body>
+</html>

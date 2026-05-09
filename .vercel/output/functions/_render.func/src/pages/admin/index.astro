@@ -1,0 +1,208 @@
+---
+import { db } from "@lib/db";
+import { gyms, chains, cities, gymFacilities, facilities } from "@lib/db/schema";
+import { eq, asc } from "drizzle-orm";
+
+const cookie = Astro.cookies.get("admin_auth");
+const isLoggedIn = cookie?.value === "gymcat_admin_2026";
+if (!isLoggedIn) return Astro.redirect("/admin/login");
+
+let message = "";
+if (Astro.request.method === "POST") {
+  try {
+    const formData = await Astro.request.formData();
+    const action = formData.get("action")?.toString();
+    const gymId = parseInt(formData.get("gym_id")?.toString() || "0");
+
+    if (action === "update" && gymId) {
+      const updates: Record<string, any> = { updatedAt: new Date() };
+      const fields = ["name", "slug", "address", "description", "image_url", "phone", "website", "status"];
+      for (const f of fields) {
+        const val = formData.get(f)?.toString();
+        if (val !== undefined && val !== null) updates[f === "image_url" ? "imageUrl" : f] = val || null;
+      }
+      const ml = formData.get("monthly_price_low")?.toString();
+      const mh = formData.get("monthly_price_high")?.toString();
+      const mf = formData.get("matricula_fee")?.toString();
+      if (ml) updates.monthlyPriceLow = ml;
+      if (mh) updates.monthlyPriceHigh = mh;
+      if (mf) updates.matriculaFee = mf;
+      await db.update(gyms).set(updates).where(eq(gyms.id, gymId));
+
+      // Facilities
+      const facilitySlugs = formData.getAll("facilities") as string[];
+      if (facilitySlugs.length > 0) {
+        await db.delete(gymFacilities).where(eq(gymFacilities.gymId, gymId));
+        const allFacs = await db.select().from(facilities);
+        const fm = new Map(allFacs.map(f => [f.slug, f.id]));
+        for (const slug of facilitySlugs) {
+          const fid = fm.get(slug);
+          if (fid) await db.insert(gymFacilities).values({ gymId, facilityId: fid }).catch(() => {});
+        }
+      }
+      message = "✅ Gimnasio actualizado correctamente";
+    }
+  } catch (e: any) {
+    message = `❌ Error: ${e.message}`;
+  }
+}
+
+const allGyms = await db.select().from(gyms).orderBy(asc(gyms.name));
+const allChains = await db.select().from(chains);
+const allCities = await db.select().from(cities);
+const allFacilities = await db.select().from(facilities);
+const chainMap = new Map(allChains.map(c => [c.id, c]));
+const cityMap = new Map(allCities.map(c => [c.id, c]));
+
+const gymData = allGyms.map(g => ({
+  id: g.id, name: g.name, slug: g.slug, address: g.address || "",
+  description: g.description || "", image_url: g.imageUrl || "",
+  phone: g.phone || "", website: g.website || "", status: g.status,
+  monthly_price_low: g.monthlyPriceLow ? Number(g.monthlyPriceLow) : null,
+  monthly_price_high: g.monthlyPriceHigh ? Number(g.monthlyPriceHigh) : null,
+  matricula_fee: g.matriculaFee ? Number(g.matriculaFee) : null,
+  is_open_247: g.isOpen247, chain_id: g.chainId, city_id: g.cityId,
+}));
+
+const chainsList = allChains.map(c => ({ id: c.id, name: c.name }));
+const citiesList = allCities.map(c => ({ id: c.id, name: c.name }));
+const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f.slug, icon: f.icon }));
+---
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin — Gymcat</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #242424; }
+    .ah { background: #242424; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .ah h1 { font-size: 18px; } .ah a { color: #aaa; text-decoration: none; font-size: 14px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+    th { background: #f9f9f9; font-weight: 600; color: #555; text-transform: uppercase; font-size: 11px; }
+    tr:hover { background: #fafafa; }
+    .btn { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; }
+    .btn-edit { background: #242424; color: white; }
+    .btn-save { background: #22c55e; color: white; }
+    .btn-cancel { background: #eee; color: #555; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: flex-start; padding-top: 40px; overflow-y: auto; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: white; border-radius: 12px; padding: 32px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal h2 { font-size: 20px; margin-bottom: 20px; }
+    .fg { margin-bottom: 14px; } .fg label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; text-transform: uppercase; }
+    .fg input, .fg textarea, .fg select { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; }
+    .fg textarea { min-height: 80px; }
+    .fr { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .ip { max-width: 200px; max-height: 120px; border-radius: 6px; margin-top: 6px; }
+    .msg { padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
+    .msg-ok { background: #dcfce7; color: #166534; } .msg-err { background: #fee2e2; color: #991b1b; }
+    .fcs { display: flex; flex-wrap: wrap; gap: 4px; }
+    .fc { padding: 3px 8px; border-radius: 20px; font-size: 11px; border: 1px solid #ddd; cursor: pointer; user-select: none; }
+    .fc.sel { background: #242424; color: white; border-color: #242424; }
+  </style>
+</head>
+<body>
+  <header class="ah">
+    <h1>Gymcat Admin</h1>
+    <div style="display:flex;gap:16px;align-items:center;">
+      <a href="/mapa">Mapa</a>
+      <a href="/gimnasios">Web p&uacute;blica</a>
+      <a href="/admin/logout">Cerrar sesión</a>
+    </div>
+  </header>
+  <div class="container">
+    {message && <div class={`msg ${message.startsWith('✅') ? 'msg-ok' : 'msg-err'}`}>{message}</div>}
+    <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <h2 style="font-size:20px;">{allGyms.length} gimnasios</h2>
+      <a href="/admin/upload" class="btn btn-edit" style="padding:10px 20px;font-size:14px;">Subir im&aacute;genes</a>
+    </div>
+    <div class="table-scroll"><table class="admin-table"><thead><tr><th>ID</th><th>Img</th><th>Nombre</th><th>Cadena</th><th>Ciudad</th><th>€/mes</th><th>Matr.</th><th>24h</th><th>Estado</th><th>Acción</th></tr></thead>
+    <tbody>
+      {allGyms.map(gym => (
+        <tr>
+          <td style="color:#999;font-size:12px;">{gym.id}</td>
+          <td>{gym.imageUrl ? <img src={gym.imageUrl} alt={gym.name} style="width:50px;height:35px;object-fit:cover;border-radius:4px;" /> : <span style="color:#ccc;">—</span>}</td>
+          <td style="font-weight:500;">{gym.name}</td>
+          <td style="color:#555;">{gym.chainId ? chainMap.get(gym.chainId)?.name || '-' : '-'}</td>
+          <td style="color:#555;">{gym.cityId ? cityMap.get(gym.cityId)?.name || '-' : '-'}</td>
+          <td style="font-family:monospace;">{gym.monthlyPriceLow ? Number(gym.monthlyPriceLow).toFixed(0)+'€' : '-'}</td>
+          <td style="font-family:monospace;">{gym.matriculaFee ? Number(gym.matriculaFee).toFixed(0)+'€' : '-'}</td>
+          <td>{gym.isOpen247 ? '<span style="color:#22c55e;">S&iacute;</span>' : '—'}</td>
+          <td><span style={`padding:2px 8px;border-radius:10px;font-size:11px;background:${gym.status==='active'?'#dcfce7':'#fee2e2'};color:${gym.status==='active'?'#166534':'#991b1b'};`}>{gym.status}</span></td>
+          <td><button class="btn btn-edit" onclick={`window._openEdit(${gym.id})`}>Editar</button></td>
+        </tr>
+      ))}
+    </tbody></table></div>
+  </div>
+
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <h2 id="modalTitle">Editar gimnasio</h2>
+      <form method="POST">
+        <input type="hidden" name="action" value="update"><input type="hidden" name="gym_id" id="egid">
+        <div class="fr"><div class="fg"><label>Nombre</label><input type="text" name="name" id="en" required></div><div class="fg"><label>Slug</label><input type="text" name="slug" id="eslug" required></div></div>
+        <div class="fg"><label>Dirección</label><input type="text" name="address" id="ea"></div>
+        <div class="fg"><label>Descripción</label><textarea name="description" id="ed"></textarea></div>
+        <div class="fr"><div class="fg"><label>Imagen URL</label><input type="text" name="image_url" id="eiu" placeholder="/uploads/gym-1.jpg"><img id="eip" class="ip" src="" style="display:none;"></div><div class="fg"><label>Web</label><input type="text" name="website" id="ew"></div></div>
+        <div class="fr"><div class="fg"><label>Teléfono</label><input type="text" name="phone" id="eph"></div><div class="fg"><label>Estado</label><select name="status" id="est"><option value="active">Activo</option><option value="inactive">Inactivo</option><option value="pending_review">Pendiente</option><option value="closed">Cerrado</option></select></div></div>
+        <div class="fr"><div class="fg"><label>Precio bajo (€)</label><input type="number" step="0.01" name="monthly_price_low" id="eml"></div><div class="fg"><label>Precio alto (€)</label><input type="number" step="0.01" name="monthly_price_high" id="emh"></div></div>
+        <div class="fr"><div class="fg"><label>Matrícula (€)</label><input type="number" step="0.01" name="matricula_fee" id="emf"></div><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_open_247" id="e247" value="true" style="width:auto;">Abierto 24h</label></div></div>
+        <div class="fg"><label>Instalaciones</label><div class="fcs" id="fc"></div></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;"><button type="button" class="btn btn-cancel" onclick="window._closeEdit()">Cancelar</button><button type="submit" class="btn btn-save">Guardar cambios</button></div>
+      </form>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ gymData, chainsList, citiesList, facilitiesList }}>
+    const gyms = gymData;
+    const chains = chainsList;
+    const cities = citiesList;
+    const facilities = facilitiesList;
+    let cf = [];
+
+    async function lf(id) {
+      try { const r = await fetch('/api/admin/gym-facilities?gym_id='+id); const d = await r.json(); cf = d.slugs || []; } catch(e) { cf = []; }
+    }
+    function rf() {
+      document.getElementById('fc').innerHTML = facilities.map(f => {
+        const s = cf.includes(f.slug);
+        return `<span class="fc${s?' sel':''}" onclick="window._tf('${f.slug}')" data-slug="${f.slug}">${f.icon} ${f.name}${s?'<input type=hidden name=facilities value='+f.slug+'>':''}</span>`;
+      }).join('');
+    }
+    window._tf = function(slug) {
+      cf = cf.includes(slug) ? cf.filter(s => s !== slug) : [...cf, slug];
+      rf();
+    };
+    window._closeEdit = function() { document.getElementById('editModal').classList.remove('active'); };
+    window._openEdit = async function(id) {
+      const g = gyms.find(g => g.id === id); if (!g) return;
+      document.getElementById('egid').value = g.id;
+      document.getElementById('en').value = g.name;
+      document.getElementById('eslug').value = g.slug;
+      document.getElementById('ea').value = g.address;
+      document.getElementById('ed').value = g.description;
+      document.getElementById('eiu').value = g.image_url;
+      document.getElementById('ew').value = g.website;
+      document.getElementById('eph').value = g.phone;
+      document.getElementById('est').value = g.status;
+      document.getElementById('eml').value = g.monthly_price_low || '';
+      document.getElementById('emh').value = g.monthly_price_high || '';
+      document.getElementById('emf').value = g.matricula_fee || '';
+      document.getElementById('e247').checked = g.is_open_247;
+      const p = document.getElementById('eip');
+      if (g.image_url) { p.src = g.image_url; p.style.display = 'block'; } else { p.style.display = 'none'; }
+      document.getElementById('modalTitle').textContent = 'Editar: ' + g.name;
+      document.getElementById('editModal').classList.add('active');
+      await lf(id); rf();
+    };
+    document.getElementById('eiu').addEventListener('input', function() {
+      const p = document.getElementById('eip');
+      if (this.value) { p.src = this.value; p.style.display = 'block'; } else { p.style.display = 'none'; }
+    });
+    document.getElementById('editModal').addEventListener('click', function(e) { if (e.target === this) window._closeEdit(); });
+  </script>
+</body>
+</html>
