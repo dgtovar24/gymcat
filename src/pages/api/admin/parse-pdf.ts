@@ -60,7 +60,7 @@ Responde SOLO JSON válido. Sin markdown. Valores null para lo que no encuentres
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "deepseek-v4-pro",
+        model: "deepseek-chat",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: text.slice(0, 10000) },

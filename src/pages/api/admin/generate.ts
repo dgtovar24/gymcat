@@ -21,9 +21,8 @@ export async function POST({ request }: { request: Request }) {
     const allSettings = await db.select().from(settings);
     const getS = (key: string) => allSettings.find(s => s.key === key)?.value || "";
 
-    const aiModel = getS("ai_model") || "deepseek-v4-pro";
-    const gmapsKey = "AIzaSyC10drvzhIUxn0bkqg3YQGNhQ0y8Y-EJY4"; // Hardcoded for testing
-    console.log("[generate] gmapsKey:", gmapsKey ? "SET (" + gmapsKey.slice(0, 8) + "...)" : "NOT SET");
+    const aiModel = getS("ai_model") || "deepseek-chat";
+    const gmapsKey = getS("google_maps_api_key") || process.env.GOOGLE_MAPS_API_KEY || (typeof import.meta !== 'undefined' ? (import.meta as any).env?.GOOGLE_MAPS_API_KEY : '');
     const placeId = placeIdFromForm || getS("google_place_id") || "";
 
     const apiKey = process.env.DEEPSEEK_API_KEY || (typeof import.meta !== 'undefined' ? (import.meta as any).env?.DEEPSEEK_API_KEY : '');
@@ -46,17 +45,25 @@ export async function POST({ request }: { request: Request }) {
       }
     }
 
-    // 2. Scrape websites for text as fallback
+    // 2. Scrape websites for text using ScrapingBee (renders JavaScript)
     const websiteUrl = formData.get("website_url")?.toString() || "";
     const urlsToScrape = websiteUrl ? websiteUrl.split("\n").filter(Boolean) : [];
     const webTexts: string[] = [];
+    const scrapingBeeKey = process.env.SCRAPINGBEE_API_KEY || "";
     for (const url of urlsToScrape.slice(0, 3)) {
       try {
-        const webRes = await fetch(url.trim(), {
-          headers: { "User-Agent": "Mozilla/5.0 (compatible; GymCat/1.0)" },
-          signal: AbortSignal.timeout(8000),
-        });
-        let html = await webRes.text();
+        let html = "";
+        if (scrapingBeeKey) {
+          const sbUrl = `https://app.scrapingbee.com/api/v1/?api_key=${scrapingBeeKey}&url=${encodeURIComponent(url.trim())}&render_js=true&wait=3000&premium_proxy=true&country_code=es`;
+          const sbRes = await fetch(sbUrl, { signal: AbortSignal.timeout(20000) });
+          html = await sbRes.text();
+        } else {
+          const webRes = await fetch(url.trim(), {
+            headers: { "User-Agent": "Mozilla/5.0 (compatible; GymCat/1.0)" },
+            signal: AbortSignal.timeout(8000),
+          });
+          html = await webRes.text();
+        }
         html = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
                    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
                    .replace(/<[^>]+>/g, " ")

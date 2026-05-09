@@ -35,7 +35,7 @@ Responde SOLO JSON válido. Sin markdown.`;
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "deepseek-v4-flash",
+        model: "deepseek-chat",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: query },
