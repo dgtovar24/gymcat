@@ -147,7 +147,10 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
           <td style="font-family:monospace;">{gym.matriculaFee ? Number(gym.matriculaFee).toFixed(0)+'€' : '-'}</td>
           <td>{gym.isOpen247 ? '<span style="color:#22c55e;">S&iacute;</span>' : '—'}</td>
           <td><span style={`padding:2px 8px;border-radius:10px;font-size:11px;background:${gym.status==='active'?'#dcfce7':'#fee2e2'};color:${gym.status==='active'?'#166534':'#991b1b'};`}>{gym.status}</span></td>
-          <td><button class="btn btn-edit" onclick={`window._openEdit(${gym.id})`}>Editar</button></td>
+          <td style="display:flex;gap:4px;">
+            <button class="btn btn-edit" onclick={`window._openEdit(${gym.id})`}>Editar</button>
+            <button class="btn" style="background:#555;color:white;" onclick={`window._analyze(${gym.id})`} title="Analizar web con IA">Analizar</button>
+          </td>
         </tr>
       ))}
     </tbody></table></div>
@@ -342,6 +345,54 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       }
       dropZone.classList.remove('loading');
     }
+
+    window._analyze = async function(id) {
+      var r = document.getElementById('analyze-result') || (function() {
+        var d = document.createElement('div');
+        d.id = 'analyze-result';
+        d.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border-radius:12px;padding:24px;max-width:500px;width:90%;z-index:200;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:none;max-height:80vh;overflow-y:auto;';
+        d.innerHTML = '<div id="analyze-content">Analizando...</div><button onclick="this.parentElement.style.display=\'none\'" style="margin-top:12px;padding:6px 16px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-size:13px;">Cerrar</button>';
+        document.body.appendChild(d);
+        return d;
+      })();
+      r.style.display = 'block';
+      document.getElementById('analyze-content').innerHTML = '<p style="text-align:center;color:#555;">Analizando web con IA...</p>';
+      try {
+        var res = await fetch('/api/admin/analyze', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({gym_id:id})
+        });
+        var data = await res.json();
+        if (data.success) {
+          var html = '<h3 style="margin-bottom:12px;">Resultado: ' + data.gym_name + '</h3>';
+          html += '<p style="font-size:13px;color:#888;margin-bottom:8px;">Web: ' + data.website + '</p>';
+          if (data.has_changes) {
+            html += '<p style="font-size:14px;font-weight:600;color:#ef4444;margin-bottom:12px;">Se detectaron cambios</p>';
+            html += '<p style="font-size:14px;margin-bottom:16px;">' + (data.summary || '') + '</p>';
+            if (data.changes) {
+              for (var k in data.changes) {
+                var c = data.changes[k];
+                if (c.changed) {
+                  html += '<div style="margin-bottom:8px;padding:8px;background:#fff3f3;border-radius:6px;font-size:13px;">';
+                  html += '<strong>' + k + '</strong>: <s style="color:#999;">' + c.before + '</s> → <strong style="color:#ef4444;">' + c.after + '</strong>';
+                  html += '</div>';
+                }
+              }
+            }
+          } else {
+            html += '<p style="font-size:14px;color:#22c55e;font-weight:500;">Sin cambios detectados</p>';
+            html += '<p style="font-size:13px;color:#888;">' + (data.summary || '') + '</p>';
+          }
+          html += '<p style="font-size:12px;color:#aaa;margin-top:12px;">Confianza: ' + ((data.confidence || 0)*100).toFixed(0) + '%</p>';
+          document.getElementById('analyze-content').innerHTML = html;
+        } else {
+          document.getElementById('analyze-content').innerHTML = '<p style="color:#ef4444;">Error: ' + (data.error || 'Desconocido') + '</p>';
+        }
+      } catch(e) {
+        document.getElementById('analyze-content').innerHTML = '<p style="color:#ef4444;">Error de conexión</p>';
+      }
+    };
 
     function slugify(text) {
       return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
