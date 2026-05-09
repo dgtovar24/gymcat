@@ -85,25 +85,25 @@ export async function POST({ request }: { request: Request }) {
     if (pdfText) sources.push("PDF del gimnasio");
     if (reviewText) sources.push("reseñas de Google Maps");
 
-    const systemPrompt = `Eres un extractor de datos para GymCat. Analiza la información combinada de ${sources.join(" y ") || "fuentes disponibles"} y extrae datos estructurados.
+    const systemPrompt = `Eres un extractor de datos para GymCat. Analiza TODA la información disponible y extrae TODOS los datos que puedas encontrar. NO devuelvas campos vacíos si encuentras información — rellena TODO lo que detectes.
 
-REGLAS:
+DATOS A EXTRAER (rellena todos los que encuentres):
 - "name": nombre completo del gimnasio
 - "address": dirección completa
-- "phone": teléfono
-- "website": web
-- "description": descripción del gimnasio basada en TODA la información (máximo 400 caracteres)
-- "monthly_price_low": precio mensual más bajo en euros (número)
-- "monthly_price_high": precio mensual más alto (número)
-- "matricula_fee": cuota de matrícula en euros (número, 0 si no hay)
-- "annual_maintenance_fee": cuota de mantenimiento anual (número, 0 si no hay)
-- "is_open_247": true si abre 24h
-- "facilities": array de slugs de instalaciones mencionadas. Slugs: pesas, cardio, peso-libre, funcional, power-rack, piscina, spa, sauna, bano-turco, jacuzzi, clases-dirigidas, spinning, yoga, pilates, crossfit, boxeo, zumba, body-pump, parking, guarderia, cafeteria, toallas, taquillas, wifi, app, abierto-24h
-- "ai_summary_pros": array de 3-5 aspectos positivos extraídos de las reseñas
-- "ai_summary_cons": array de 3-5 aspectos negativos extraídos de las reseñas
-- "overall_sentiment": "positive", "negative" o "neutral" según el tono general
+- "phone": teléfono (formato español)
+- "website": web oficial
+- "description": descripción detallada (máximo 400 caracteres) — SIEMPRE rellena esto si hay texto disponible
+- "monthly_price_low": precio mensual en euros (número, busca patrones como "29,99€/mes" o "desde 29.99")
+- "matricula_fee": cuota de matrícula (número, 0 si dice "sin matrícula" o "gratis")
+- "annual_maintenance_fee": mantenimiento anual (número)
+- "is_open_247": true si menciona "24h", "24 horas", "abierto todo el día"
+- "facilities": array de slugs. Busca menciones de: pesas, cardio, peso-libre, funcional, power-rack, piscina, spa, sauna, bano-turco, jacuzzi, clases-dirigidas, spinning, yoga, pilates, crossfit, boxeo, zumba, body-pump, parking, guarderia, cafeteria, toallas, taquillas, wifi, app, abierto-24h
+- "ai_summary_pros": 3-5 aspectos positivos (de reseñas o del texto)
+- "ai_summary_cons": 3-5 aspectos negativos
 
-Responde SOLO JSON válido. Valores null para lo que no encuentres.`;
+IMPORTANTE: Busca precios en formatos españoles (29,99€). Busca instalaciones mencionadas en el texto. Busca horarios y teléfonos. Rellena la descripción SIEMPRE que haya texto.
+
+Responde SOLO JSON válido.`;
 
     const userContent = [
       pdfText ? `CONTENIDO DEL PDF:\n${pdfText.slice(0, 6000)}` : "",
@@ -206,21 +206,43 @@ function json(data: any, status = 200) {
 }
 
 function extractPDFText(buffer: Buffer): string {
-  const str = buffer.toString("latin1");
-  const texts: string[] = [];
+  // Try UTF-8 first (works for modern PDFs with embedded text)
+  const utf8 = buffer.toString("utf-8");
+  // Extract text between BT/ET markers
   const btRegex = /BT\s*([\s\S]*?)\s*ET/g;
+  const texts: string[] = [];
   let match: RegExpExecArray | null;
-  while ((match = btRegex.exec(str)) !== null) {
+  while ((match = btRegex.exec(utf8)) !== null) {
     const block = match[1]!;
     const tjRegex = /\(([^)]*)\)\s*Tj/g;
     let tjMatch: RegExpExecArray | null;
     while ((tjMatch = tjRegex.exec(block)) !== null) {
-      texts.push(tjMatch[1]!);
+      const txt = tjMatch[1]!.trim();
+      if (txt.length > 1) texts.push(txt);
     }
   }
-  if (texts.length === 0) {
-    const readable = str.replace(/[^\x20-\x7E\xC0-\xFF\n\r\t]/g, " ");
-    return readable.replace(/\s+/g, " ").trim();
+
+  // If BT/ET extraction found text, return it
+  if (texts.length > 5) {
+    return texts.join(" ").replace(/\s+/g, " ").trim();
   }
-  return texts.join(" ").replace(/\s+/g, " ").trim();
+
+  // Fallback 1: try to find text in stream objects
+  const streamRegex = /stream\s+([\s\S]*?)endstream/g;
+  let streamMatch: RegExpExecArray | null;
+  const streamTexts: string[] = [];
+  while ((streamMatch = streamRegex.exec(utf8)) !== null) {
+    const content = streamMatch[1]!;
+    const readable = content.replace(/[^\x20-\x7E\xC0-\xFF\n\r\t]/g, " ")
+      .replace(/\s+/g, " ").trim();
+    if (readable.length > 10) streamTexts.push(readable.slice(0, 500));
+  }
+  if (streamTexts.length > 0) {
+    return streamTexts.join("\n").slice(0, 6000);
+  }
+
+  // Fallback 2: remove non-printable chars
+  const readable = utf8.replace(/[^\x20-\x7E\xC0-\xFF\n\r\t]/g, " ");
+  const cleaned = readable.replace(/\s+/g, " ").trim();
+  return cleaned.slice(0, 6000);
 }
