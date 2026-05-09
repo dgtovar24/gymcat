@@ -25,7 +25,7 @@ export async function POST({ request }: { request: Request }) {
     const gmapsKey = getS("google_maps_api_key") || process.env.GOOGLE_MAPS_API_KEY || "";
     const placeId = placeIdFromForm || getS("google_place_id") || "";
 
-    const apiKey = process.env.DEEPSEEK_API_KEY;
+    const apiKey = process.env.DEEPSEEK_API_KEY || (typeof import.meta !== 'undefined' ? (import.meta as any).env?.DEEPSEEK_API_KEY : '');
     if (!apiKey) {
       return json({ error: "DeepSeek API key not configured" }, 500);
     }

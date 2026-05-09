@@ -31,7 +31,7 @@ export async function POST({ request }: { request: Request }) {
     }
 
     // Call DeepSeek to extract structured data
-    const apiKey = process.env.DEEPSEEK_API_KEY;
+    const apiKey = process.env.DEEPSEEK_API_KEY || (typeof import.meta !== 'undefined' ? (import.meta as any).env?.DEEPSEEK_API_KEY : '');
     if (!apiKey) {
       return json({ error: "DeepSeek API key not configured" }, 500);
     }
