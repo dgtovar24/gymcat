@@ -346,6 +346,28 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       dropZone.classList.remove('loading');
     }
 
+    window._applyChanges = async function(id) {
+      var c = document.getElementById('analyze-content');
+      c.innerHTML = '<p style="text-align:center;color:#555;">Aplicando cambios...</p>';
+      try {
+        var res = await fetch('/api/admin/apply-changes', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({gym_id:id})
+        });
+        var data = await res.json();
+        if (data.success) {
+          c.innerHTML = '<p style="color:#22c55e;font-size:14px;font-weight:600;">Cambios aplicados correctamente.</p>';
+          c.innerHTML += '<p style="font-size:13px;color:#888;">' + (data.summary || '') + '</p>';
+          c.innerHTML += '<button onclick="document.getElementById(\'analyze-result\').style.display=\'none\';window.location.reload()" style="margin-top:12px;padding:6px 16px;background:#242424;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;">Cerrar y recargar</button>';
+        } else {
+          c.innerHTML = '<p style="color:#ef4444;">Error: ' + (data.error || 'Desconocido') + '</p>';
+        }
+      } catch(e) {
+        c.innerHTML = '<p style="color:#ef4444;">Error de conexión</p>';
+      }
+    };
+
     window._analyze = async function(id) {
       var r = document.getElementById('analyze-result') || (function() {
         var d = document.createElement('div');
@@ -380,6 +402,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
                 }
               }
             }
+            html += '<button onclick="window._applyChanges(' + id + ')" style="margin-top:16px;width:100%;padding:12px;background:#242424;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Aplicar cambios</button>';
           } else {
             html += '<p style="font-size:14px;color:#22c55e;font-weight:500;">Sin cambios detectados</p>';
             html += '<p style="font-size:13px;color:#888;">' + (data.summary || '') + '</p>';
