@@ -22,10 +22,12 @@ export async function POST({ request }: { request: Request }) {
     const getS = (key: string) => allSettings.find(s => s.key === key)?.value || "";
 
     const aiModel = getS("ai_model") || "deepseek-chat";
-    const gmapsKey = getS("google_maps_api_key") || process.env.GOOGLE_MAPS_API_KEY || (typeof import.meta !== 'undefined' ? (import.meta as any).env?.GOOGLE_MAPS_API_KEY : '');
+    // Read env vars (Astro API routes need import.meta.env)
+    const env = typeof import.meta !== 'undefined' ? (import.meta as any).env : {};
+    const gmapsKey = getS("google_maps_api_key") || env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "AIzaSyC10drvzhIUxn0bkqg3YQGNhQ0y8Y-EJY4";
     const placeId = placeIdFromForm || getS("google_place_id") || "";
 
-    const apiKey = process.env.DEEPSEEK_API_KEY || (typeof import.meta !== 'undefined' ? (import.meta as any).env?.DEEPSEEK_API_KEY : '');
+    const apiKey = env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || "";
     if (!apiKey) {
       return json({ error: "DeepSeek API key not configured" }, 500);
     }
