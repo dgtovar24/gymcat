@@ -162,6 +162,7 @@ Responde SOLO JSON válido.`;
       filledFields,
       debug: {
         pdfChars: pdfText.length,
+        pdfSample: pdfText.slice(0, 500),
         reviewChars: reviewText.length,
         urls_analyzed: [],
         userContentLength: userContent.length,
