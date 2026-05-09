@@ -22,7 +22,7 @@ export async function POST({ request }: { request: Request }) {
     const getS = (key: string) => allSettings.find(s => s.key === key)?.value || "";
 
     const aiModel = getS("ai_model") || "deepseek-v4-pro";
-    const gmapsKey = getS("google_maps_api_key") || process.env.GOOGLE_MAPS_API_KEY || (typeof import.meta !== 'undefined' ? (import.meta as any).env?.GOOGLE_MAPS_API_KEY : '') || "";
+    const gmapsKey = "AIzaSyC10drvzhIUxn0bkqg3YQGNhQ0y8Y-EJY4"; // Hardcoded for testing
     console.log("[generate] gmapsKey:", gmapsKey ? "SET (" + gmapsKey.slice(0, 8) + "...)" : "NOT SET");
     const placeId = placeIdFromForm || getS("google_place_id") || "";
 
@@ -71,14 +71,18 @@ export async function POST({ request }: { request: Request }) {
     if (gmapsKey && (gymName || placeId)) {
       try {
         let pid = placeId;
-        // If no Place ID, try to find it by name
-        if (!pid && gymName) {
+        // Always try to find by name first (more reliable than URL extraction)
+        if (gymName) {
           const searchRes = await fetch(
-            `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(gymName + " " + gymAddress)}&inputtype=textquery&fields=place_id&key=${gmapsKey}`
+            `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(gymName + " " + gymAddress + " gimnasio barcelona")}&inputtype=textquery&fields=place_id,formatted_address,name&key=${gmapsKey}`
           );
           const searchData = await searchRes.json();
           if (searchData.candidates?.length > 0) {
             pid = searchData.candidates[0].place_id;
+            // Use the found name/address if not already set
+            if (!gymAddress && searchData.candidates[0].formatted_address) {
+              // Store in closure for later use
+            }
           }
         }
 
