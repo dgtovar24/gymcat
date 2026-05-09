@@ -36,6 +36,14 @@ if (Astro.request.method === "POST") {
       message = "✅ Gimnasio desarchivado";
     }
 
+    if (action === "delete_chain") {
+      const chainId = parseInt(formData.get("chain_id")?.toString() || "0");
+      if (chainId) {
+        const count = await db.delete(gyms).where(eq(gyms.chainId, chainId)).returning({ id: gyms.id });
+        message = `✅ ${count.length} gimnasios de la cadena eliminados`;
+      }
+    }
+
     if (action === "update" && gymId) {
       const updates: Record<string, any> = { updatedAt: new Date() };
       const fields = ["name", "slug", "address", "description", "image_url", "phone", "website", "status", "google_place_id"];
@@ -164,7 +172,19 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
         <button onclick="window._openNew()" class="btn btn-save" style="padding:10px 20px;font-size:14px;">+ Nuevo gimnasio</button>
       </div>
     </div>
-    <div class="table-scroll"><table class="admin-table"><thead><tr><th>ID</th><th>Img</th><th>Nombre</th><th>Cadena</th><th>Ciudad</th><th>Provincia</th><th>€/mes</th><th>Matr.</th><th>24h</th><th>Web</th><th>Estado</th><th>Acción</th></tr></thead>
+    <!-- Search + Chain actions -->
+    <div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+      <input type="text" id="table-filter" placeholder="Filtrar gimnasios..."
+        style="flex:1;min-width:200px;padding:8px 14px;border:1px solid #ddd;border-radius:6px;font-size:13px;"
+        oninput="filterTable(this.value)" />
+      <select id="chain-actions" onchange="handleChainAction(this.value)" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:white;">
+        <option value="">Acciones de cadena...</option>
+        {allChains.map(c => <option value={c.id}>Eliminar TODOS los {c.name}</option>)}
+      </select>
+      <span id="filter-count" style="font-size:12px;color:var(--color-mid-gray);"></span>
+    </div>
+
+    <div class="table-scroll"><table class="admin-table" id="admin-table"><thead><tr><th>ID</th><th>Img</th><th>Nombre</th><th>Cadena</th><th>Ciudad</th><th>Provincia</th><th>€/mes</th><th>Matr.</th><th>24h</th><th>Web</th><th>Estado</th><th>Acción</th></tr></thead>
     <tbody>
       {allGyms.map(gym => (
         <tr>
@@ -540,6 +560,32 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
         });
       } catch(e) {}
     }
+
+    function filterTable(query) {
+      var rows = document.querySelectorAll('#admin-table tbody tr');
+      var count = 0;
+      var q = query.toLowerCase();
+      rows.forEach(function(row) {
+        var text = row.textContent.toLowerCase();
+        var show = !q || text.indexOf(q) !== -1;
+        row.style.display = show ? '' : 'none';
+        if (show) count++;
+      });
+      document.getElementById('filter-count').textContent = count + ' de ' + rows.length + ' gimnasios';
+    }
+
+    window.handleChainAction = function(chainId) {
+      if (!chainId) return;
+      var name = document.querySelector('#chain-actions option[value="' + chainId + '"]').textContent;
+      if (confirm('¿' + name + '? Esta acción es irreversible.')) {
+        var f = document.createElement('form');
+        f.method = 'POST'; f.style.display = 'none';
+        f.innerHTML = '<input name="action" value="delete_chain"><input name="chain_id" value="' + chainId + '">';
+        document.body.appendChild(f);
+        f.submit();
+      }
+      document.getElementById('chain-actions').value = '';
+    };
 
     function slugify(text) {
       return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
