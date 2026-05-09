@@ -22,31 +22,36 @@ const {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/png" href="/GymCatLogo.png" />
+    <link rel="canonical" href={`https://gymcat.es${Astro.url.pathname}`} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&family=Roboto+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <title>{title ? `${title} | GymCat` : "GymCat — Comparador de Gimnasios"}</title>
+    <title>{title ? `${title} | GymCat` : "GymCat — Comparador de Gimnasios en Cataluña"}</title>
     <meta
       name="description"
-      content={description || "Compara precios, instalaciones y horarios de gimnasios en Cataluña. Transparencia total con datos actualizados por IA."}
+      content={description || "Compara precios reales, instalaciones y horarios de gimnasios en Cataluña. Transparencia total con datos actualizados por IA."}
     />
 
-    <!-- Open Graph -->
-    <meta property="og:title" content={title || "Gymcat — Comparador de Gimnasios"} />
+    <meta property="og:title" content={title || "GymCat — Comparador de Gimnasios"} />
     <meta property="og:description" content={description || "Compara precios, instalaciones y horarios de gimnasios en Cataluña."} />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Gymcat" />
+    <meta property="og:url" content={`https://gymcat.es${Astro.url.pathname}`} />
+    <meta property="og:site_name" content="GymCat" />
+    <meta property="og:locale" content="es_ES" />
 
-    <!-- Schema Markup: WebSite -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title || "GymCat — Comparador de Gimnasios"} />
+    <meta name="twitter:description" content={description || "Compara precios, instalaciones y horarios de gimnasios en Cataluña."} />
+
     <script type="application/ld+json" is:inline set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: "GymCat",
       url: "https://gymcat.es",
-      description: "Comparador inteligente de gimnasios en Cataluña",
+      description: "Comparador inteligente de gimnasios en Cataluña. Precios reales, instalaciones verificadas, reseñas analizadas por IA.",
       inLanguage: "es",
     })} />
 
@@ -61,11 +66,10 @@ const {
     </main>
     <Footer />
 
-    <!-- Cookie Consent Banner -->
     <div id="cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--color-white);border-top:1px solid rgba(34,42,53,0.1);padding:16px 24px;z-index:999;box-shadow:0 -4px 24px rgba(0,0,0,0.08);">
       <div class="container-xl" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
         <p style="font-size:13px;color:var(--color-mid-gray);margin:0;flex:1;min-width:200px;line-height:1.5;">
-          Usamos cookies t&eacute;cnicas necesarias para el funcionamiento y, con tu permiso, la geolocalizaci&oacute;n para mostrarte gimnasios cercanos. <a href="/politica-de-cookies" style="color:var(--color-link-blue);">M&aacute;s info</a>
+          Usamos cookies t&eacute;cnicas necesarias y, con tu permiso, la geolocalizaci&oacute;n para gimnasios cercanos. <a href="/politica-de-cookies" style="color:var(--color-link-blue);">Info</a>
         </p>
         <div style="display:flex;gap:8px;flex-shrink:0;">
           <button onclick="rejectCookies()" class="btn-ghost" style="font-size:12px;padding:6px 14px;">Solo necesarias</button>
@@ -76,12 +80,11 @@ const {
     <script is:inline>
       (function() {
         var consent = localStorage.getItem('cookie_consent');
-        if (!consent) {
-          document.getElementById('cookie-banner').style.display = 'block';
-        }
+        if (!consent) document.getElementById('cookie-banner').style.display = 'block';
         window.acceptCookies = function() {
           localStorage.setItem('cookie_consent', 'accepted');
           document.getElementById('cookie-banner').style.display = 'none';
+          if (window._detectLocation) window._detectLocation();
         };
         window.rejectCookies = function() {
           localStorage.setItem('cookie_consent', 'rejected');

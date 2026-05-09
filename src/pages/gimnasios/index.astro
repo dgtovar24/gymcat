@@ -141,4 +141,43 @@ const facSVGsJSON = JSON.stringify(facSVGs);
 
   <div id="gymcat-data" style="display:none;" data-gyms={gymsJSON} data-chains={chainsJSON} data-facs={facsJSON} data-facsvgs={facSVGsJSON}></div>
   <script src="/gym-list.js" defer></script>
+
+  <!-- Geolocation: detect user city and update page title -->
+  <script is:inline>
+    (function() {
+      var stored = localStorage.getItem('gymcat_city');
+      if (stored) {
+        try {
+          var c = JSON.parse(stored);
+          if (c.province || c.city) updateTitle(c.province || c.city);
+        } catch(e) {}
+      }
+
+      // Auto-detect if already consented
+      if (localStorage.getItem('cookie_consent') === 'accepted') {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(async function(pos) {
+            try {
+              var res = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&zoom=10');
+              var data = await res.json();
+              var addr = data.address || {};
+              var province = addr.state || '';
+              var city = addr.city || addr.town || addr.village || '';
+              var name = province || city;
+              if (name) {
+                localStorage.setItem('gymcat_city', JSON.stringify({ province: province, city: city }));
+                updateTitle(name);
+              }
+            } catch(e) {}
+          }, function(){}, { enableHighAccuracy: false, timeout: 5000 });
+        }
+      }
+
+      function updateTitle(name) {
+        var title = document.getElementById('page-title');
+        if (title) title.innerHTML = 'Gimnasios en ' + name;
+        document.title = 'Gimnasios en ' + name + ' | GymCat';
+      }
+    })();
+  </script>
 </BaseLayout>
