@@ -27,7 +27,7 @@ export async function POST({ request }: { request: Request }) {
     const gmapsKey = getS("google_maps_api_key") || env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "AIzaSyC10drvzhIUxn0bkqg3YQGNhQ0y8Y-EJY4";
     const placeId = placeIdFromForm || getS("google_place_id") || "";
 
-    const apiKey = env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || "";
+    const apiKey = env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || "sk-a0b83ddd895447f0b57820db91a5e9e3";
     if (!apiKey) {
       return json({ error: "DeepSeek API key not configured" }, 500);
     }
