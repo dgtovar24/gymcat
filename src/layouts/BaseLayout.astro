@@ -60,5 +60,34 @@ const {
       <slot />
     </main>
     <Footer />
+
+    <!-- Cookie Consent Banner -->
+    <div id="cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--color-white);border-top:1px solid rgba(34,42,53,0.1);padding:16px 24px;z-index:999;box-shadow:0 -4px 24px rgba(0,0,0,0.08);">
+      <div class="container-xl" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <p style="font-size:13px;color:var(--color-mid-gray);margin:0;flex:1;min-width:200px;line-height:1.5;">
+          Usamos cookies t&eacute;cnicas necesarias para el funcionamiento y, con tu permiso, la geolocalizaci&oacute;n para mostrarte gimnasios cercanos. <a href="/politica-de-cookies" style="color:var(--color-link-blue);">M&aacute;s info</a>
+        </p>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <button onclick="rejectCookies()" class="btn-ghost" style="font-size:12px;padding:6px 14px;">Solo necesarias</button>
+          <button onclick="acceptCookies()" class="btn-primary" style="font-size:12px;padding:6px 14px;">Aceptar</button>
+        </div>
+      </div>
+    </div>
+    <script is:inline>
+      (function() {
+        var consent = localStorage.getItem('cookie_consent');
+        if (!consent) {
+          document.getElementById('cookie-banner').style.display = 'block';
+        }
+        window.acceptCookies = function() {
+          localStorage.setItem('cookie_consent', 'accepted');
+          document.getElementById('cookie-banner').style.display = 'none';
+        };
+        window.rejectCookies = function() {
+          localStorage.setItem('cookie_consent', 'rejected');
+          document.getElementById('cookie-banner').style.display = 'none';
+        };
+      })();
+    </script>
   </body>
 </html>
