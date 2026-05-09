@@ -21,7 +21,7 @@ export async function POST({ request }: { request: Request }) {
     const allSettings = await db.select().from(settings);
     const getS = (key: string) => allSettings.find(s => s.key === key)?.value || "";
 
-    const aiModel = getS("ai_model") || "deepseek-chat";
+    const aiModel = getS("ai_model") || "deepseek-v4-pro";
     const gmapsKey = getS("google_maps_api_key") || process.env.GOOGLE_MAPS_API_KEY || "";
     const placeId = placeIdFromForm || getS("google_place_id") || "";
 

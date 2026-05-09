@@ -24,7 +24,7 @@ export async function POST({ request }: { request: Request }) {
 
     const { settings } = await import("@lib/db/schema");
     const allSettings = await db.select().from(settings);
-    const aiModel = allSettings.find(s => s.key === "ai_model")?.value || "deepseek-chat";
+    const aiModel = allSettings.find(s => s.key === "ai_model")?.value || "deepseek-v4-pro";
 
     const facRows = await db.select({ slug: facilities.slug, name: facilities.name })
       .from(gymFacilities).innerJoin(facilities, eq(gymFacilities.facilityId, facilities.id))

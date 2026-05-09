@@ -62,7 +62,7 @@ export class DeepSeekClient {
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
-        model: options?.model || "deepseek-chat",
+        model: options?.model || "deepseek-v4-pro",
         messages,
         temperature: options?.temperature ?? 0.1,
         max_tokens: options?.maxTokens ?? 4096,

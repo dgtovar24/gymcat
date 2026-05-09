@@ -79,7 +79,7 @@ export async function POST({ request }: { request: Request }) {
 
     const { settings } = await import("@lib/db/schema");
     const allSettings = await db.select().from(settings);
-    const aiModel = allSettings.find(s => s.key === "ai_model")?.value || "deepseek-chat";
+    const aiModel = allSettings.find(s => s.key === "ai_model")?.value || "deepseek-v4-pro";
 
     const systemPrompt = `Eres un analizador de cambios para GymCat. Compara los datos actuales con el contenido de ${urls.length} webs y detecta diferencias.
 
