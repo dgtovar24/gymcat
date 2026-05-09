@@ -233,27 +233,44 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
     <div class="modal">
       <h2 id="modalTitle">Editar gimnasio</h2>
 
-      <!-- PDF Drop Zone -->
-      <div class="drop-zone" id="dropZone">
-        <div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-        <p id="dropText">Arrastra un PDF o haz clic aqu&iacute;</p>
-        <p style="font-size:11px;">Adjunta un PDF y luego pulsa "Generar con IA"</p>
-        <input type="file" id="pdfInput" accept=".pdf" style="display:none" onchange="onFileSelected(this.files[0])" />
-      </div>
-      <div id="pdf-status" style="display:none;margin-bottom:12px;padding:8px 14px;border-radius:6px;font-size:13px;"></div>
-      <button type="button" onclick="generateWithAI()" style="width:100%;padding:12px;background:#242424;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        Generar con IA
-      </button>
+      <!-- AI INPUT SECTION -->
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius-8);padding:16px;margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:600;color:#1e40af;margin-bottom:10px;">DATOS PARA LA IA — PDF, Google Maps y Webs</div>
 
+        <div class="drop-zone" id="dropZone">
+          <div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <p id="dropText">Arrastra un PDF o haz clic aqu&iacute;</p>
+          <p style="font-size:11px;">La IA extraer&aacute; datos del PDF</p>
+          <input type="file" id="pdfInput" accept=".pdf" style="display:none" onchange="onFileSelected(this.files[0])" />
+        </div>
+
+        <div class="fg"><label>Google Maps (Place ID o URL)</label><input type="text" name="google_place_id" id="egpid" placeholder="ChIJ... o pega la URL de Google Maps del gimnasio"><div style="font-size:11px;color:#888;margin-top:2px;">La IA obtendr&aacute; las rese&ntilde;as desde Google Maps.</div></div>
+
+        <div class="fg" style="margin-bottom:8px;">
+          <label>Webs adicionales</label>
+          <div id="urls-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"></div>
+          <div style="display:flex;gap:6px;">
+            <input type="url" id="new-url-input" placeholder="https://..." style="flex:1;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
+            <button type="button" onclick="addUrl()" style="padding:7px 14px;background:#3b82f6;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap;">+ A&ntilde;adir</button>
+          </div>
+        </div>
+
+        <div id="pdf-status" style="display:none;margin-bottom:12px;padding:8px 14px;border-radius:6px;font-size:13px;"></div>
+        <button type="button" onclick="generateWithAI()" style="width:100%;padding:12px;background:#242424;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Generar con IA
+        </button>
+      </div>
+
+      <!-- GYM DATA SECTION -->
       <form method="POST">
         <input type="hidden" name="action" value="update"><input type="hidden" name="gym_id" id="egid">
         <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius-8);padding:16px;margin-bottom:20px;">
-          <div style="font-size:11px;font-weight:600;color:#166534;margin-bottom:10px;">DATOS EXTRA&Iacute;BLES POR IA</div>
+          <div style="font-size:11px;font-weight:600;color:#166534;margin-bottom:10px;">DATOS DEL GIMNASIO</div>
           <div class="fr"><div class="fg"><label>Nombre</label><input type="text" name="name" id="en" required class="ai-field"></div><div class="fg"><label>Slug</label><input type="text" name="slug" id="eslug" required class="ai-field"></div></div>
           <div class="fg"><label>Direcci&oacute;n</label><input type="text" name="address" id="ea" class="ai-field"></div>
-          <div class="fr"><div class="fg"><label>Precio mensual (&euro;/mes)</label><input type="number" step="0.01" name="monthly_price_low" id="eml" placeholder="Ej: 29.99" class="ai-field"></div><div class="fg"><label>Matr&iacute;cula (&euro;)</label><input type="number" step="0.01" name="matricula_fee" id="emf" placeholder="Pago &uacute;nico al inscribirse" class="ai-field"></div></div>
-          <div class="fr"><div class="fg"><label>Mantenimiento anual (&euro;)</label><input type="number" step="0.01" name="annual_maintenance_fee" id="emaf" placeholder="Ej: 25" oninput="calcFirstYear()" class="ai-field"></div><div class="fg"><label>Precio total primer a&ntilde;o (&euro;)</label><input type="number" step="0.01" id="efyt" placeholder="Se calcula autom&aacute;ticamente" readonly style="background:#f5f5f5;color:#555;"></div></div>
+          <div class="fr"><div class="fg"><label>Precio mensual (&euro;/mes)</label><input type="number" step="0.01" name="monthly_price_low" id="eml" placeholder="Ej: 29.99" class="ai-field"></div><div class="fg"><label>Matr&iacute;cula (&euro;)</label><input type="number" step="0.01" name="matricula_fee" id="emf" placeholder="Pago &uacute;nico" class="ai-field"></div></div>
+          <div class="fr"><div class="fg"><label>Mantenimiento anual (&euro;)</label><input type="number" step="0.01" name="annual_maintenance_fee" id="emaf" placeholder="Ej: 25" oninput="calcFirstYear()" class="ai-field"></div><div class="fg"><label>Total 1er a&ntilde;o (&euro;)</label><input type="number" step="0.01" id="efyt" readonly style="background:#f5f5f5;color:#555;"></div></div>
           <div class="fr"><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_open_247" id="e247" value="true" style="width:auto;" class="ai-field">Abierto 24h</label></div><div class="fg"><label>Tel&eacute;fono</label><input type="text" name="phone" id="eph" class="ai-field"></div></div>
           <div class="fg"><label>Instalaciones</label><div class="fac-grid" id="fc"></div></div>
         </div>
@@ -261,18 +278,9 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
         <div class="fg"><label>Descripci&oacute;n</label><textarea name="description" id="ed"></textarea></div>
         <div class="fr"><div class="fg"><label>Imagen URL</label><input type="text" name="image_url" id="eiu" placeholder="/uploads/gym-1.jpg"><img id="eip" class="ip" src="" style="display:none;"></div><div class="fg"><label>Cadena</label><select name="chain_id" id="echain"><option value="">Sin cadena</option>{chainsList.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}</select></div></div>
         <div class="fr"><div class="fg"><label>Web principal</label><input type="text" name="website" id="ew" placeholder="https://..."></div><div class="fg"><label>Estado</label><select name="status" id="est"><option value="active">Activo</option><option value="inactive">Inactivo</option><option value="pending_review">Pendiente</option><option value="closed">Cerrado</option><option value="archived">Archivado</option></select></div></div>
-        <div class="fg"><label>Google Maps Place ID (para rese&ntilde;as)</label><input type="text" name="google_place_id" id="egpid" placeholder="ChIJ... o URL de Google Maps"><div style="font-size:11px;color:#888;margin-top:2px;">La IA lo usar&aacute; para obtener rese&ntilde;as de Google Maps.</div></div>
         <div class="fr">
           <div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_verified" id="everified" value="true" style="width:auto;">Verificado</label></div>
           <div class="fg"><label>Rese&ntilde;a del verificador</label><input type="text" name="verified_review" id="everifiedreview" placeholder="Ej: 'Excelente relaci&oacute;n calidad-precio'"></div>
-        </div>
-        <div class="fg" style="margin-bottom:8px;">
-          <label>Webs adicionales (para an&aacute;lisis IA)</label>
-          <div id="urls-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"></div>
-          <div style="display:flex;gap:6px;">
-            <input type="url" id="new-url-input" placeholder="https://otra-pagina-del-gimnasio.com" style="flex:1;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
-            <button type="button" onclick="addUrl()" style="padding:7px 14px;background:#555;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap;">+ A&ntilde;adir</button>
-          </div>
         </div>
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;"><button type="button" class="btn btn-cancel" onclick="window._closeEdit()">Cancelar</button><button type="submit" class="btn btn-save">Guardar cambios</button></div>
       </form>
