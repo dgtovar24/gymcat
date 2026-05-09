@@ -22,7 +22,8 @@ export async function POST({ request }: { request: Request }) {
     const getS = (key: string) => allSettings.find(s => s.key === key)?.value || "";
 
     const aiModel = getS("ai_model") || "deepseek-v4-pro";
-    const gmapsKey = getS("google_maps_api_key") || process.env.GOOGLE_MAPS_API_KEY || "";
+    const gmapsKey = getS("google_maps_api_key") || process.env.GOOGLE_MAPS_API_KEY || (typeof import.meta !== 'undefined' ? (import.meta as any).env?.GOOGLE_MAPS_API_KEY : '') || "";
+    console.log("[generate] gmapsKey:", gmapsKey ? "SET (" + gmapsKey.slice(0, 8) + "...)" : "NOT SET");
     const placeId = placeIdFromForm || getS("google_place_id") || "";
 
     const apiKey = process.env.DEEPSEEK_API_KEY || (typeof import.meta !== 'undefined' ? (import.meta as any).env?.DEEPSEEK_API_KEY : '');
@@ -60,7 +61,7 @@ export async function POST({ request }: { request: Request }) {
                    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
                    .replace(/<[^>]+>/g, " ")
                    .replace(/\s+/g, " ")
-                   .slice(0, 2000);
+                   .slice(0, 6000);
         if (html.length > 50) webTexts.push(`[${url}]\n${html}`);
       } catch {}
     }
