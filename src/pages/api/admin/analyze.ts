@@ -129,9 +129,6 @@ ESTRUCTURA JSON:
     const content = data.choices?.[0]?.message?.content || "{}";
     const result = JSON.parse(content);
 
-    // Update last analyzed timestamp
-    await db.update(gyms).set({ lastAnalyzedAt: new Date() } as any).where(eq(gyms.id, gymId));
-
     return json({
       success: true,
       gym_name: gym.name,
