@@ -64,12 +64,16 @@ if (Astro.request.method === "POST") {
       const ch = formData.get("chain_id")?.toString();
       const iv = formData.get("is_verified")?.toString();
       const vr = formData.get("verified_review")?.toString();
+      const pros = formData.get("ai_summary_pros")?.toString();
+      const cons = formData.get("ai_summary_cons")?.toString();
       if (ml) updates.monthlyPriceLow = ml;
       if (mf) updates.matriculaFee = mf;
       if (af) updates.annualMaintenanceFee = af;
       if (ch) updates.chainId = parseInt(ch);
       updates.isVerified = iv === "true";
       if (vr !== undefined) updates.verifiedReview = vr || null;
+      if (pros !== undefined) updates.aiSummaryPros = pros ? pros.split("|||").filter(Boolean) : [];
+      if (cons !== undefined) updates.aiSummaryCons = cons ? cons.split("|||").filter(Boolean) : [];
       await db.update(gyms).set(updates).where(eq(gyms.id, gymId));
 
       // Facilities
@@ -305,6 +309,8 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
           <div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_verified" id="everified" value="true" style="width:auto;">Verificado</label></div>
           <div class="fg"><label>Rese&ntilde;a del verificador</label><input type="text" name="verified_review" id="everifiedreview" placeholder="Ej: 'Excelente relaci&oacute;n calidad-precio'"></div>
         </div>
+        <input type="hidden" name="ai_summary_pros" id="ai-pros">
+        <input type="hidden" name="ai_summary_cons" id="ai-cons">
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;"><button type="button" class="btn btn-cancel" onclick="window._closeEdit()">Cancelar</button><button type="submit" class="btn btn-save">Guardar cambios</button></div>
       </form>
     </div>
@@ -377,6 +383,8 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       document.getElementById('e247').checked = false;
       document.getElementById('everified').checked = false;
       document.getElementById('everifiedreview').value = '';
+      document.getElementById('ai-pros').value = '';
+      document.getElementById('ai-cons').value = '';
       document.getElementById('eip').style.display = 'none';
       document.getElementById('modalTitle').textContent = 'Nuevo gimnasio';
       document.querySelector('form input[name=action]').value = 'create';
@@ -488,6 +496,13 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
           setVal('emaf', d.annual_maintenance_fee);
           if (d.is_open_247) { document.getElementById('e247').checked = true; document.getElementById('e247').parentElement.style.background = '#dcfce7'; }
           if (d.facilities && d.facilities.length) { cf = d.facilities; rf();highlightFacilities(); }
+          // Save pros/cons to hidden fields
+          if (d.ai_summary_pros && d.ai_summary_pros.length) {
+            document.getElementById('ai-pros').value = d.ai_summary_pros.join('|||');
+          }
+          if (d.ai_summary_cons && d.ai_summary_cons.length) {
+            document.getElementById('ai-cons').value = d.ai_summary_cons.join('|||');
+          }
           var src = data.sources || {};
           var filled = data.filledFields || [];
           var parts = [];
