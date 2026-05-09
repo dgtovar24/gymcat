@@ -10,6 +10,10 @@ export async function POST({ request }: { request: Request }) {
     const file = formData.get("pdf") as File | null;
     const gymName = formData.get("gym_name")?.toString() || "";
     const gymAddress = formData.get("gym_address")?.toString() || "";
+    const rawPlaceId = formData.get("place_id")?.toString() || "";
+
+    // Extract Place ID from Google Maps URL if needed
+    const placeIdFromForm = extractPlaceId(rawPlaceId);
 
     // Load settings
     const { db } = await import("@lib/db");
@@ -19,7 +23,7 @@ export async function POST({ request }: { request: Request }) {
 
     const aiModel = getS("ai_model") || "deepseek-chat";
     const gmapsKey = getS("google_maps_api_key") || process.env.GOOGLE_MAPS_API_KEY || "";
-    const placeId = getS("google_place_id") || "";
+    const placeId = placeIdFromForm || getS("google_place_id") || "";
 
     const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
@@ -144,6 +148,22 @@ Responde SOLO JSON válido. Valores null para lo que no encuentres.`;
   }
 }
 
+/** Extract Place ID from Google Maps URL or return raw ID */
+function extractPlaceId(input: string): string {
+  if (!input) return "";
+  // If it's already a Place ID (starts with ChIJ)
+  if (input.startsWith("ChIJ")) return input;
+  // Extract from Google Maps URL: place_id:XXX or !3d...!4d...!6s... or /place/XXX/
+  const idMatch = input.match(/place_id[:=]([^&]+)/) || input.match(/\/place\/[^/]+\/[^/]+\/([^/?]+)/);
+  if (idMatch) return idMatch[1];
+  // Extract ChIJ from URL
+  const chijMatch = input.match(/(ChIJ[a-zA-Z0-9_-]{20,})/);
+  if (chijMatch) return chijMatch[1];
+  // If looks like an ID (alphanumeric with underscore/dash, >10 chars)
+  if (/^[A-Za-z0-9_-]{10,}$/.test(input.trim())) return input.trim();
+  return "";
+}
+
 function json(data: any, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
 }
@@ -152,13 +172,13 @@ function extractPDFText(buffer: Buffer): string {
   const str = buffer.toString("latin1");
   const texts: string[] = [];
   const btRegex = /BT\s*([\s\S]*?)\s*ET/g;
-  let match;
+  let match: RegExpExecArray | null;
   while ((match = btRegex.exec(str)) !== null) {
-    const block = match[1];
+    const block = match[1]!;
     const tjRegex = /\(([^)]*)\)\s*Tj/g;
-    let tjMatch;
+    let tjMatch: RegExpExecArray | null;
     while ((tjMatch = tjRegex.exec(block)) !== null) {
-      texts.push(tjMatch[1]);
+      texts.push(tjMatch[1]!);
     }
   }
   if (texts.length === 0) {

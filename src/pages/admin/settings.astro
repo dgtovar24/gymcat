@@ -1,7 +1,6 @@
 ---
 import { db } from "@lib/db";
 import { settings } from "@lib/db/schema";
-import { eq } from "drizzle-orm";
 
 const cookie = Astro.cookies.get("admin_auth");
 if (cookie?.value !== "gymcat_admin_2026") return Astro.redirect("/admin/login");

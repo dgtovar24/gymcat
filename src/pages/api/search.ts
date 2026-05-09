@@ -61,8 +61,8 @@ Responde SOLO JSON válido. Sin markdown.`;
 
     return json({ filters, explanation: filters.explanation || query, query });
 
-  } catch (error) {
-    return json({ filters: {}, explanation: "", query: body?.query || "", fallback: "error" });
+  } catch (_error) {
+    return json({ filters: {}, explanation: "", query: "", fallback: "error" });
   }
 }
 
