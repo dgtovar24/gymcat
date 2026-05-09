@@ -23,11 +23,13 @@ if (Astro.request.method === "POST") {
         if (val !== undefined && val !== null) updates[dbKey] = val || null;
       }
       const ml = formData.get("monthly_price_low")?.toString();
-      const mh = formData.get("monthly_price_high")?.toString();
       const mf = formData.get("matricula_fee")?.toString();
+      const af = formData.get("annual_maintenance_fee")?.toString();
+      const ch = formData.get("chain_id")?.toString();
       if (ml) updates.monthlyPriceLow = ml;
-      if (mh) updates.monthlyPriceHigh = mh;
       if (mf) updates.matriculaFee = mf;
+      if (af) updates.annualMaintenanceFee = af;
+      if (ch) updates.chainId = parseInt(ch);
       await db.update(gyms).set(updates).where(eq(gyms.id, gymId));
 
       // Facilities
@@ -177,7 +179,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
         <div class="fr"><div class="fg"><label>Teléfono</label><input type="text" name="phone" id="eph"></div><div class="fg"><label>Estado</label><select name="status" id="est"><option value="active">Activo</option><option value="inactive">Inactivo</option><option value="pending_review">Pendiente</option><option value="closed">Cerrado</option></select></div></div>
         <div class="fg"><label>Google Maps Place ID (para reseñas)</label><input type="text" name="google_place_id" id="egpid" placeholder="ChIJ... o URL de Google Maps"><div style="font-size:11px;color:#888;margin-top:2px;">Pega la URL de Google Maps del gimnasio o su Place ID. La IA lo usará para obtener reseñas.</div></div>
         <div class="fr"><div class="fg"><label>Precio mensual (€/mes)</label><input type="number" step="0.01" name="monthly_price_low" id="eml" placeholder="Ej: 29.99"></div><div class="fg"><label>Matrícula (€)</label><input type="number" step="0.01" name="matricula_fee" id="emf" placeholder="Pago único al inscribirse"></div></div>
-        <div class="fr"><div class="fg"><label>Mantenimiento anual (€)</label><input type="number" step="0.01" name="annual_maintenance_fee" id="emaf" placeholder="Ej: 25"></div><div class="fg"><label>Precio total primer año (€)</label><input type="number" step="0.01" name="first_year_total" id="efyt" placeholder="Suma: matrícula + 12x cuota + mant."></div></div>
+        <div class="fr"><div class="fg"><label>Mantenimiento anual (€)</label><input type="number" step="0.01" name="annual_maintenance_fee" id="emaf" placeholder="Ej: 25" oninput="calcFirstYear()"></div><div class="fg"><label>Precio total primer año (€)</label><input type="number" step="0.01" id="efyt" placeholder="Se calcula automáticamente" readonly style="background:#f5f5f5;color:#555;"></div></div>
         <div class="fr"><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_open_247" id="e247" value="true" style="width:auto;">Abierto 24h</label></div><div class="fg"><label>Enlace web del gimnasio</label><input type="text" name="website" id="ew" placeholder="https://..."></div></div>
         <div class="fg"><label>Instalaciones</label><div class="fac-grid" id="fc"></div></div>
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;"><button type="button" class="btn btn-cancel" onclick="window._closeEdit()">Cancelar</button><button type="submit" class="btn btn-save">Guardar cambios</button></div>
@@ -245,9 +247,11 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       document.getElementById('eph').value = g.phone;
       document.getElementById('est').value = g.status;
       document.getElementById('eml').value = g.monthly_price_low || '';
-      document.getElementById('emh').value = g.monthly_price_high || '';
       document.getElementById('emf').value = g.matricula_fee || '';
+      document.getElementById('emaf').value = g.annual_maintenance_fee || '';
+      document.getElementById('efyt').value = g.monthly_price_low && g.matricula_fee != null ? ((g.monthly_price_low * 12) + (g.matricula_fee || 0) + (g.annual_maintenance_fee || 0)).toFixed(0) : '';
       document.getElementById('egpid').value = g.google_place_id || '';
+      document.getElementById('echain').value = g.chain_id || '';
       document.getElementById('e247').checked = g.is_open_247;
       const p = document.getElementById('eip');
       if (g.image_url) { p.src = g.image_url; p.style.display = 'block'; } else { p.style.display = 'none'; }
@@ -260,6 +264,15 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       if (this.value) { p.src = this.value; p.style.display = 'block'; } else { p.style.display = 'none'; }
     });
     document.getElementById('editModal').addEventListener('click', function(e) { if (e.target === this) window._closeEdit(); });
+
+    function calcFirstYear() {
+      var ml = parseFloat(document.getElementById('eml').value) || 0;
+      var mf = parseFloat(document.getElementById('emf').value) || 0;
+      var af = parseFloat(document.getElementById('emaf').value) || 0;
+      document.getElementById('efyt').value = ((ml * 12) + mf + af).toFixed(0);
+    }
+    document.getElementById('eml').addEventListener('input', calcFirstYear);
+    document.getElementById('emf').addEventListener('input', calcFirstYear);
 
     // PDF drop zone
     var pdfFile = null;
@@ -309,8 +322,8 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
           if (d.phone) document.getElementById('eph').value = d.phone;
           if (d.website) document.getElementById('ew').value = d.website;
           if (d.monthly_price_low) document.getElementById('eml').value = d.monthly_price_low;
-          if (d.monthly_price_high) document.getElementById('emh').value = d.monthly_price_high;
           if (d.matricula_fee != null) document.getElementById('emf').value = d.matricula_fee;
+          if (d.annual_maintenance_fee) document.getElementById('emaf').value = d.annual_maintenance_fee;
           if (d.is_open_247) document.getElementById('e247').checked = true;
           if (d.facilities && d.facilities.length) { cf = d.facilities; rf(); }
           var src = data.sources || {};
