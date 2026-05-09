@@ -259,6 +259,23 @@ export const gymFacilities = pgTable(
   ],
 );
 
+/** Multiple URLs per gym — for web analysis. */
+export const gymUrls = pgTable(
+  "gym_urls",
+  {
+    id: serial("id").primaryKey(),
+    gymId: integer("gym_id")
+      .notNull()
+      .references(() => gyms.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    label: varchar("label", { length: 255 }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_gym_urls_gym").on(table.gymId),
+  ],
+);
+
 /** Multiple images per gym — gallery support. */
 export const gymImages = pgTable(
   "gym_images",

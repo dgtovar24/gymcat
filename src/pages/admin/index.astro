@@ -183,7 +183,15 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
         <div class="fg"><label>Google Maps Place ID (para reseñas)</label><input type="text" name="google_place_id" id="egpid" placeholder="ChIJ... o URL de Google Maps"><div style="font-size:11px;color:#888;margin-top:2px;">Pega la URL de Google Maps del gimnasio o su Place ID. La IA lo usará para obtener reseñas.</div></div>
         <div class="fr"><div class="fg"><label>Precio mensual (€/mes)</label><input type="number" step="0.01" name="monthly_price_low" id="eml" placeholder="Ej: 29.99"></div><div class="fg"><label>Matrícula (€)</label><input type="number" step="0.01" name="matricula_fee" id="emf" placeholder="Pago único al inscribirse"></div></div>
         <div class="fr"><div class="fg"><label>Mantenimiento anual (€)</label><input type="number" step="0.01" name="annual_maintenance_fee" id="emaf" placeholder="Ej: 25" oninput="calcFirstYear()"></div><div class="fg"><label>Precio total primer año (€)</label><input type="number" step="0.01" id="efyt" placeholder="Se calcula automáticamente" readonly style="background:#f5f5f5;color:#555;"></div></div>
-        <div class="fr"><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_open_247" id="e247" value="true" style="width:auto;">Abierto 24h</label></div><div class="fg"><label>Enlace web del gimnasio</label><input type="text" name="website" id="ew" placeholder="https://..."></div></div>
+        <div class="fr"><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_open_247" id="e247" value="true" style="width:auto;">Abierto 24h</label></div><div class="fg"><label>Web principal</label><input type="text" name="website" id="ew" placeholder="https://..."></div></div>
+        <div class="fg" style="margin-bottom:8px;">
+          <label>Webs adicionales (para análisis IA)</label>
+          <div id="urls-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"></div>
+          <div style="display:flex;gap:6px;">
+            <input type="url" id="new-url-input" placeholder="https://otra-pagina-del-gimnasio.com" style="flex:1;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
+            <button type="button" onclick="addUrl()" style="padding:7px 14px;background:#555;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap;">+ A&ntilde;adir</button>
+          </div>
+        </div>
         <div class="fg"><label>Instalaciones</label><div class="fac-grid" id="fc"></div></div>
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;"><button type="button" class="btn btn-cancel" onclick="window._closeEdit()">Cancelar</button><button type="submit" class="btn btn-save">Guardar cambios</button></div>
       </form>
@@ -260,7 +268,9 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       if (g.image_url) { p.src = g.image_url; p.style.display = 'block'; } else { p.style.display = 'none'; }
       document.getElementById('modalTitle').textContent = 'Editar: ' + g.name;
       document.getElementById('editModal').classList.add('active');
+      currentGymId = id;
       await lf(id); rf();
+      await loadUrls(id);
     };
     document.getElementById('eiu').addEventListener('input', function() {
       const p = document.getElementById('eip');
@@ -388,7 +398,8 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
         var data = await res.json();
         if (data.success) {
           var html = '<h3 style="margin-bottom:12px;">Resultado: ' + data.gym_name + '</h3>';
-          html += '<p style="font-size:13px;color:#888;margin-bottom:8px;">Web: ' + data.website + '</p>';
+          var urls = data.urls_analyzed || [data.website];
+          html += '<p style="font-size:13px;color:#888;margin-bottom:8px;">' + urls.length + ' webs analizadas</p>';
           if (data.has_changes) {
             html += '<p style="font-size:14px;font-weight:600;color:#ef4444;margin-bottom:12px;">Se detectaron cambios</p>';
             html += '<p style="font-size:14px;margin-bottom:16px;">' + (data.summary || '') + '</p>';
@@ -416,6 +427,56 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
         document.getElementById('analyze-content').innerHTML = '<p style="color:#ef4444;">Error de conexión</p>';
       }
     };
+
+    var currentUrls = [];
+    var currentGymId = null;
+
+    async function loadUrls(gymId) {
+      try {
+        var r = await fetch('/api/admin/gym-urls?gym_id=' + gymId);
+        var d = await r.json();
+        currentUrls = d.urls || [];
+        renderUrls();
+      } catch(e) { currentUrls = []; renderUrls(); }
+    }
+
+    function renderUrls() {
+      var c = document.getElementById('urls-list');
+      c.innerHTML = currentUrls.map(function(u, i) {
+        return '<div style="display:flex;gap:4px;align-items:center;font-size:12px;padding:4px 8px;background:#f5f5f5;border-radius:4px;">' +
+          '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + u.url + '">' + u.url + '</span>' +
+          '<button type="button" onclick="removeUrl(' + i + ')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;padding:0 4px;">&times;</button>' +
+          '</div>';
+      }).join('');
+    }
+
+    window.addUrl = function() {
+      var inp = document.getElementById('new-url-input');
+      var url = inp.value.trim();
+      if (!url) return;
+      if (currentUrls.find(function(u) { return u.url === url; })) { alert('Esa URL ya existe'); return; }
+      currentUrls.push({ url: url, label: '' });
+      inp.value = '';
+      renderUrls();
+      saveUrls();
+    };
+
+    window.removeUrl = function(i) {
+      currentUrls.splice(i, 1);
+      renderUrls();
+      saveUrls();
+    };
+
+    async function saveUrls() {
+      if (!currentGymId) return;
+      try {
+        await fetch('/api/admin/gym-urls', {
+          method: 'PUT',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ gym_id: currentGymId, urls: currentUrls })
+        });
+      } catch(e) {}
+    }
 
     function slugify(text) {
       return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
