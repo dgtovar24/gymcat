@@ -56,10 +56,14 @@ if (Astro.request.method === "POST") {
       const mf = formData.get("matricula_fee")?.toString();
       const af = formData.get("annual_maintenance_fee")?.toString();
       const ch = formData.get("chain_id")?.toString();
+      const iv = formData.get("is_verified")?.toString();
+      const vr = formData.get("verified_review")?.toString();
       if (ml) updates.monthlyPriceLow = ml;
       if (mf) updates.matriculaFee = mf;
       if (af) updates.annualMaintenanceFee = af;
       if (ch) updates.chainId = parseInt(ch);
+      updates.isVerified = iv === "true";
+      if (vr !== undefined) updates.verifiedReview = vr || null;
       await db.update(gyms).set(updates).where(eq(gyms.id, gymId));
 
       // Facilities
@@ -96,6 +100,7 @@ const gymData = allGyms.map(g => ({
   monthly_price_high: g.monthlyPriceHigh ? Number(g.monthlyPriceHigh) : null,
   matricula_fee: g.matriculaFee ? Number(g.matriculaFee) : null,
   annual_maintenance_fee: g.annualMaintenanceFee ? Number(g.annualMaintenanceFee) : null,
+  is_verified: g.isVerified, verified_review: g.verifiedReview || "",
   google_place_id: g.googlePlaceId || "", is_open_247: g.isOpen247, chain_id: g.chainId, city_id: g.cityId,
 }));
 
@@ -184,7 +189,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       <span id="filter-count" style="font-size:12px;color:var(--color-mid-gray);"></span>
     </div>
 
-    <div class="table-scroll"><table class="admin-table" id="admin-table"><thead><tr><th>ID</th><th>Img</th><th>Nombre</th><th>Cadena</th><th>Ciudad</th><th>Provincia</th><th>€/mes</th><th>Matr.</th><th>24h</th><th>Web</th><th>Estado</th><th>Acción</th></tr></thead>
+    <div class="table-scroll"><table class="admin-table" id="admin-table"><thead><tr><th>ID</th><th>Img</th><th>Nombre</th><th>Cadena</th><th>Ciudad</th><th>Prov.</th><th>€/mes</th><th>Matr.</th><th>24h</th><th>Verif.</th><th>Web</th><th>Estado</th><th>Acción</th></tr></thead>
     <tbody>
       {allGyms.map(gym => (
         <tr>
@@ -197,6 +202,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
           <td style="font-family:monospace;">{gym.monthlyPriceLow ? Number(gym.monthlyPriceLow).toFixed(0)+'€' : '-'}</td>
           <td style="font-family:monospace;">{gym.matriculaFee ? Number(gym.matriculaFee).toFixed(0)+'€' : '-'}</td>
           <td>{gym.isOpen247 ? <span style="color:#22c55e;font-weight:500;">S&iacute;</span> : <span style="color:#999;">No</span>}</td>
+          <td>{gym.isVerified ? <span style="color:#3b82f6;font-weight:500;" title="Verificado por GymCat">✓</span> : <span style="color:#ccc;">—</span>}</td>
           <td>{gym.website ? <a href={gym.website} target="_blank" style="color:var(--color-link-blue);font-size:12px;">Visitar</a> : <span style="color:#ccc;">—</span>}</td>
           <td><span style={`padding:2px 8px;border-radius:10px;font-size:11px;background:${gym.status==='active'?'#dcfce7':'#fee2e2'};color:${gym.status==='active'?'#166534':'#991b1b'};`}>{gym.status}</span></td>
           <td style="display:flex;gap:4px;flex-wrap:wrap;">
@@ -241,6 +247,10 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
         <div class="fr"><div class="fg"><label>Precio mensual (€/mes)</label><input type="number" step="0.01" name="monthly_price_low" id="eml" placeholder="Ej: 29.99"></div><div class="fg"><label>Matrícula (€)</label><input type="number" step="0.01" name="matricula_fee" id="emf" placeholder="Pago único al inscribirse"></div></div>
         <div class="fr"><div class="fg"><label>Mantenimiento anual (€)</label><input type="number" step="0.01" name="annual_maintenance_fee" id="emaf" placeholder="Ej: 25" oninput="calcFirstYear()"></div><div class="fg"><label>Precio total primer año (€)</label><input type="number" step="0.01" id="efyt" placeholder="Se calcula automáticamente" readonly style="background:#f5f5f5;color:#555;"></div></div>
         <div class="fr"><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_open_247" id="e247" value="true" style="width:auto;">Abierto 24h</label></div><div class="fg"><label>Web principal</label><input type="text" name="website" id="ew" placeholder="https://..."></div></div>
+        <div class="fr">
+          <div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_verified" id="everified" value="true" style="width:auto;">Verificado</label></div>
+          <div class="fg"><label>Reseña del verificador</label><input type="text" name="verified_review" id="everifiedreview" placeholder="Ej: 'Excelente relación calidad-precio, las máquinas son nuevas'"></div>
+        </div>
         <div class="fg" style="margin-bottom:8px;">
           <label>Webs adicionales (para análisis IA)</label>
           <div id="urls-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"></div>
@@ -320,6 +330,8 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       document.getElementById('egpid').value = '';
       document.getElementById('echain').value = '';
       document.getElementById('e247').checked = false;
+      document.getElementById('everified').checked = false;
+      document.getElementById('everifiedreview').value = '';
       document.getElementById('eip').style.display = 'none';
       document.getElementById('modalTitle').textContent = 'Nuevo gimnasio';
       document.querySelector('form input[name=action]').value = 'create';
@@ -347,6 +359,8 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       document.getElementById('egpid').value = g.google_place_id || '';
       document.getElementById('echain').value = g.chain_id || '';
       document.getElementById('e247').checked = g.is_open_247;
+      document.getElementById('everified').checked = g.is_verified || false;
+      document.getElementById('everifiedreview').value = g.verified_review || '';
       const p = document.getElementById('eip');
       if (g.image_url) { p.src = g.image_url; p.style.display = 'block'; } else { p.style.display = 'none'; }
       document.getElementById('modalTitle').textContent = 'Editar: ' + g.name;

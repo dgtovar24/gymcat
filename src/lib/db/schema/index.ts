@@ -185,6 +185,10 @@ export const gyms = pgTable(
       scale: 2,
     }),
 
+    // Verification
+    isVerified: boolean("is_verified").default(false),
+    verifiedReview: text("verified_review"),
+
     // Operations
     isOpen247: boolean("is_open_247").default(false),
     openingHours: jsonb("opening_hours"),

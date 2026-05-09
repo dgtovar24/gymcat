@@ -10,6 +10,7 @@ const allGyms = await db.select({
   monthlyPriceLow: gyms.monthlyPriceLow, monthlyPriceHigh: gyms.monthlyPriceHigh,
   matriculaFee: gyms.matriculaFee, isOpen247: gyms.isOpen247,
   imageUrl: gyms.imageUrl, chainId: gyms.chainId,
+  isVerified: gyms.isVerified, verifiedReview: gyms.verifiedReview,
 }).from(gyms).where(eq(gyms.status, "active")).orderBy(asc(gyms.name));
 
 const [allChains, allFacs, allGymFacRows] = await Promise.all([
@@ -47,6 +48,7 @@ const gymsJSON = JSON.stringify(allGyms.map(g => ({
   priceHigh: g.monthlyPriceHigh ? Number(g.monthlyPriceHigh) : null,
   matricula: g.matriculaFee ? Number(g.matriculaFee) : null,
   is24h: g.isOpen247, image: g.imageUrl,
+  isVerified: g.isVerified, verifiedReview: g.verifiedReview,
   chain: g.chainId ? chainMap.get(g.chainId)?.name || null : null,
   facilities: gymFacMap.get(g.id) || [],
 })));

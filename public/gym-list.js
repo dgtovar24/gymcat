@@ -145,6 +145,7 @@
     var chainBadge = g.chain ? '<span style="display:inline-block;font-size:11px;font-weight:500;color:var(--color-mid-gray);padding:2px 8px;border-radius:var(--radius-pill);box-shadow:var(--shadow-ring-border);margin-bottom:8px;">' + esc(g.chain) + '</span>' : '';
     var addressHTML = g.address ? '<p style="font-size:13px;color:var(--color-mid-gray);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:2px;"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.4 8 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8z"/></svg> ' + esc(g.address) + '</p>' : '';
     var badges = [];
+    if (g.isVerified) badges.push('<span style="font-size:10px;font-weight:500;padding:2px 6px;border-radius:var(--radius-pill);background:#3b82f6;color:white;cursor:help;" title="Verificado por GymCat: hemos visitado este gimnasio personalmente">&#10003; Verificado</span>');
     if (g.is24h) badges.push('<span style="font-size:10px;font-weight:500;padding:2px 6px;border-radius:var(--radius-pill);background:var(--color-off-white);">24h</span>');
     if (g.matricula === 0) badges.push('<span style="font-size:10px;font-weight:500;color:#22c55e;padding:2px 6px;border-radius:var(--radius-pill);background:rgba(34,197,94,0.1);">Sin matr&iacute;cula</span>');
 
