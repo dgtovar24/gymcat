@@ -160,6 +160,12 @@ Responde SOLO JSON válido. Valores null para lo que no encuentres.`;
       success: true,
       data: extracted,
       filledFields,
+      debug: {
+        pdfChars: pdfText.length,
+        reviewChars: reviewText.length,
+        urls_analyzed: [],
+        userContentLength: userContent.length,
+      },
       sources: {
         hasPdf: !!pdfText,
         pdfLength: pdfText.length,
@@ -178,13 +184,19 @@ function extractPlaceId(input: string): string {
   if (!input) return "";
   // If it's already a Place ID (starts with ChIJ)
   if (input.startsWith("ChIJ")) return input;
-  // Extract from Google Maps URL: place_id:XXX or !3d...!4d...!6s... or /place/XXX/
+  // Extract from Google Maps URL: ftid=XXX or 0x...:0x... pattern
+  const ftidMatch = input.match(/ftid=([^&]+)/);
+  if (ftidMatch) return decodeURIComponent(ftidMatch[1]);
+  // Extract hex Place ID from !1s... pattern
+  const hexMatch = input.match(/!1s(0x[0-9a-fA-F]+):(0x[0-9a-fA-F]+)/);
+  if (hexMatch) return hexMatch[1] + ":" + hexMatch[2];
+  // Extract from /place/XXX/ pattern
   const idMatch = input.match(/place_id[:=]([^&]+)/) || input.match(/\/place\/[^/]+\/[^/]+\/([^/?]+)/);
   if (idMatch) return idMatch[1];
-  // Extract ChIJ from URL
+  // Extract ChIJ pattern
   const chijMatch = input.match(/(ChIJ[a-zA-Z0-9_-]{20,})/);
   if (chijMatch) return chijMatch[1];
-  // If looks like an ID (alphanumeric with underscore/dash, >10 chars)
+  // If looks like an ID
   if (/^[A-Za-z0-9_-]{10,}$/.test(input.trim())) return input.trim();
   return "";
 }
