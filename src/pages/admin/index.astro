@@ -78,6 +78,7 @@ const allCities = await db.select().from(cities);
 const allFacilities = await db.select().from(facilities);
 const chainMap = new Map(allChains.map(c => [c.id, c]));
 const cityMap = new Map(allCities.map(c => [c.id, c]));
+const cityProvinceMap = new Map(allCities.map(c => [c.id, c.province || ""]));
 
 const gymData = allGyms.map(g => ({
   id: g.id, name: g.name, slug: g.slug, address: g.address || "",
@@ -163,7 +164,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
         <button onclick="window._openNew()" class="btn btn-save" style="padding:10px 20px;font-size:14px;">+ Nuevo gimnasio</button>
       </div>
     </div>
-    <div class="table-scroll"><table class="admin-table"><thead><tr><th>ID</th><th>Img</th><th>Nombre</th><th>Cadena</th><th>Ciudad</th><th>€/mes</th><th>Matr.</th><th>24h</th><th>Estado</th><th>Acción</th></tr></thead>
+    <div class="table-scroll"><table class="admin-table"><thead><tr><th>ID</th><th>Img</th><th>Nombre</th><th>Cadena</th><th>Ciudad</th><th>Provincia</th><th>€/mes</th><th>Matr.</th><th>24h</th><th>Web</th><th>Estado</th><th>Acción</th></tr></thead>
     <tbody>
       {allGyms.map(gym => (
         <tr>
@@ -172,9 +173,11 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
           <td style="font-weight:500;">{gym.name}</td>
           <td style="color:#555;">{gym.chainId ? chainMap.get(gym.chainId)?.name || '-' : '-'}</td>
           <td style="color:#555;">{gym.cityId ? cityMap.get(gym.cityId)?.name || '-' : '-'}</td>
+          <td style="color:#555;font-size:12px;">{gym.cityId ? cityProvinceMap.get(gym.cityId) || '-' : '-'}</td>
           <td style="font-family:monospace;">{gym.monthlyPriceLow ? Number(gym.monthlyPriceLow).toFixed(0)+'€' : '-'}</td>
           <td style="font-family:monospace;">{gym.matriculaFee ? Number(gym.matriculaFee).toFixed(0)+'€' : '-'}</td>
-          <td>{gym.isOpen247 ? '<span style="color:#22c55e;">S&iacute;</span>' : '—'}</td>
+          <td>{gym.isOpen247 ? '<span style="color:#22c55e;font-weight:500;">S&iacute;</span>' : '<span style="color:#999;">No</span>'}</td>
+          <td>{gym.website ? '<a href="'+gym.website+'" target="_blank" style="color:var(--color-link-blue);font-size:12px;">Visitar</a>' : '<span style="color:#ccc;">—</span>'}</td>
           <td><span style={`padding:2px 8px;border-radius:10px;font-size:11px;background:${gym.status==='active'?'#dcfce7':'#fee2e2'};color:${gym.status==='active'?'#166534':'#991b1b'};`}>{gym.status}</span></td>
           <td style="display:flex;gap:4px;flex-wrap:wrap;">
             <button class="btn btn-edit" onclick={`window._openEdit(${gym.id})`}>Editar</button>
