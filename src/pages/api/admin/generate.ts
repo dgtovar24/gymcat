@@ -188,6 +188,8 @@ Responde SOLO JSON válido.`;
       debug: {
         pdfChars: pdfText.length,
         pdfSample: pdfText.slice(0, 500),
+        webChars: webText.length,
+        webSample: webText.slice(0, 500),
         reviewChars: reviewText.length,
         urls_analyzed: [],
         userContentLength: userContent.length,

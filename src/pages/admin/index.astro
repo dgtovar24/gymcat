@@ -685,6 +685,10 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       if (debug.pdfSample) {
         html += '<div style="color:#808080;margin:4px 0 8px 0;">Muestra: ' + JSON.stringify(debug.pdfSample).slice(0, 200) + '...</div>\n';
       }
+      html += '<div style="color:#ce9178;">Web scraping:</div> ' + (debug.webChars || 0) + ' caracteres\n';
+      if (debug.webSample) {
+        html += '<div style="color:#808080;margin:4px 0 8px 0;">Muestra web: ' + JSON.stringify(debug.webSample).slice(0, 200) + '...</div>\n';
+      }
       html += '<div style="color:#ce9178;">Google Maps:</div> ' + (sources.hasReviews ? sources.reviewCount + ' reseñas' : 'Sin reseñas (falta API key)') + '\n';
       html += '<div style="color:#ce9178;">Total datos enviados a IA:</div> ' + (debug.userContentLength || 0) + ' caracteres\n\n';
 
