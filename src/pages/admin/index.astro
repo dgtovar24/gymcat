@@ -211,15 +211,40 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
           <td>{gym.isVerified ? <span style="color:#3b82f6;font-weight:500;" title="Verificado por GymCat">✓</span> : <span style="color:#ccc;">—</span>}</td>
           <td>{gym.website ? <a href={gym.website} target="_blank" style="color:var(--color-link-blue);font-size:12px;">Visitar</a> : <span style="color:#ccc;">—</span>}</td>
           <td><span style={`padding:2px 8px;border-radius:10px;font-size:11px;background:${gym.status==='active'?'#dcfce7':'#fee2e2'};color:${gym.status==='active'?'#166534':'#991b1b'};`}>{gym.status}</span></td>
-          <td style="display:flex;gap:2px;flex-wrap:wrap;">
-            <a href={`/gimnasios/${gym.slug}`} target="_blank" class="btn btn-edit" style="padding:4px 7px;font-size:11px;text-decoration:none;" title="Ver gimnasio">Ver</a>
-            <button class="btn btn-edit" style="padding:4px 7px;font-size:11px;" onclick={`window._openEdit(${gym.id})`} title="Editar">Editar</button>
-            <button class="btn" style="padding:4px 7px;font-size:11px;background:#555;color:white;" onclick={`window._analyze(${gym.id})`} title="Analizar web con IA">IA</button>
+          <td style="display:flex;gap:2px;flex-wrap:wrap;align-items:center;">
+            <!-- View -->
+            <a href={`/gimnasios/${gym.slug}`} target="_blank" style="padding:4px 6px;border-radius:4px;color:#555;text-decoration:none;display:inline-flex;align-items:center;" title="Ver gimnasio">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </a>
+            <!-- Edit -->
+            <button onclick={`window._openEdit(${gym.id})`} style="padding:4px 6px;border:none;border-radius:4px;background:none;color:#555;cursor:pointer;" title="Editar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <!-- Analyze -->
+            <button onclick={`window._analyze(${gym.id})`} style="padding:4px 6px;border:none;border-radius:4px;background:none;color:#3b82f6;cursor:pointer;" title="Analizar web con IA">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </button>
+            <!-- Toggle active/inactive -->
             <form method="POST" style="display:inline;"><input type="hidden" name="action" value="toggle_visibility"><input type="hidden" name="gym_id" value={gym.id}><input type="hidden" name="status" value={gym.status === 'active' ? 'inactive' : 'active'}>
-              <button type="submit" class="btn" style={`padding:4px 7px;font-size:11px;background:${gym.status==='active'?'#f59e0b':'#22c55e'};color:white;`} title={gym.status === 'active' ? 'Ocultar' : 'Mostrar'}>{gym.status === 'active' ? 'Ocultar' : 'Mostrar'}</button>
+              <button type="submit" style={`padding:4px 6px;border:none;border-radius:4px;background:none;color:${gym.status==='active'?'#22c55e':'#f59e0b'};cursor:pointer;`} title={gym.status === 'active' ? 'Desactivar (ocultar del sitio)' : 'Activar (mostrar en el sitio)'}>
+                {gym.status === 'active'
+                  ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+                  : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'}
+              </button>
             </form>
-            {gym.status !== 'archived' ? <button class="btn" style="padding:4px 7px;font-size:11px;background:#6b7280;color:white;" onclick={`document.getElementById('archive-form-${gym.id}').submit()`} title="Archivar">Archivar</button> : <button class="btn" style="padding:4px 7px;font-size:11px;background:#22c55e;color:white;" onclick={`document.getElementById('unarchive-form-${gym.id}').submit()`} title="Recuperar">Recuperar</button>}
-            <button class="btn" style="padding:4px 7px;font-size:11px;background:#ef4444;color:white;" onclick="if(confirm('¿Eliminar este gimnasio?'))document.getElementById('delete-form-{gym.id}').submit()" title="Eliminar">Eliminar</button>
+            <!-- Archive -->
+            {gym.status !== 'archived'
+              ? <button onclick={`document.getElementById('archive-form-${gym.id}').submit()`} style="padding:4px 6px;border:none;border-radius:4px;background:none;color:#6b7280;cursor:pointer;" title="Archivar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+                </button>
+              : <button onclick={`document.getElementById('unarchive-form-${gym.id}').submit()`} style="padding:4px 6px;border:none;border-radius:4px;background:none;color:#22c55e;cursor:pointer;" title="Recuperar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                </button>
+            }
+            <!-- Delete -->
+            <button onclick={`if(confirm('¿Eliminar este gimnasio?'))document.getElementById('delete-form-${gym.id}').submit()`} style="padding:4px 6px;border:none;border-radius:4px;background:none;color:#ef4444;cursor:pointer;" title="Eliminar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
             <form id={`archive-form-${gym.id}`} method="POST" style="display:none;"><input type="hidden" name="action" value="archive"><input type="hidden" name="gym_id" value={gym.id}></form>
             <form id={`unarchive-form-${gym.id}`} method="POST" style="display:none;"><input type="hidden" name="action" value="unarchive"><input type="hidden" name="gym_id" value={gym.id}></form>
             <form id={`delete-form-${gym.id}`} method="POST" style="display:none;"><input type="hidden" name="action" value="delete"><input type="hidden" name="gym_id" value={gym.id}></form>
