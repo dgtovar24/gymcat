@@ -148,6 +148,15 @@ Responde SOLO JSON válido.`;
       gymName ? `Nombre sugerido: ${gymName}` : "",
     ].filter(Boolean).join("\n\n---\n\n");
 
+    if (!userContent || userContent.length < 10) {
+      return json({
+        success: false,
+        error: "Sin datos para analizar. Añade un PDF, una web, un nombre o una URL de Google Maps.",
+        data: {},
+        filledFields: [],
+      });
+    }
+
     const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
