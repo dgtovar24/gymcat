@@ -422,7 +422,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
     });
     document.getElementById('editModal').addEventListener('click', function(e) { if (e.target === this) window._closeEdit(); });
 
-    function calcFirstYear() {
+    window.calcFirstYear = function() {
       var ml = parseFloat(document.getElementById('eml').value) || 0;
       var mf = parseFloat(document.getElementById('emf').value) || 0;
       var af = parseFloat(document.getElementById('emaf').value) || 0;
@@ -446,7 +446,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       if (file && file.type === 'application/pdf') onFileSelected(file);
     });
 
-    function onFileSelected(file) {
+    window.onFileSelected = function(file) {
       pdfFile = file;
       document.getElementById('dropText').textContent = file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
       document.getElementById('pdf-status').style.display = 'block';
@@ -455,7 +455,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       document.getElementById('pdf-status').textContent = 'PDF cargado. Pulsa "Generar con IA"';
     }
 
-    async function generateWithAI() {
+    window.generateWithAI = async function() {
       var status = document.getElementById('pdf-status');
       status.style.display = 'block';
       status.style.background = '#f0f0f0';
@@ -624,7 +624,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       } catch(e) {}
     }
 
-    function filterTable(query) {
+    window.filterTable = function(query) {
       var rows = document.querySelectorAll('#admin-table tbody tr');
       var count = 0;
       var q = query.toLowerCase();
