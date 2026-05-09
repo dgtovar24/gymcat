@@ -235,13 +235,45 @@ function json(data: any, status = 200) {
 }
 
 function extractPDFText(buffer: Buffer): string {
-  // Try UTF-8 first (works for modern PDFs with embedded text)
-  const utf8 = buffer.toString("utf-8");
-  // Extract text between BT/ET markers
-  const btRegex = /BT\s*([\s\S]*?)\s*ET/g;
+  const raw = buffer.toString("latin1");
   const texts: string[] = [];
+
+  // Find all stream objects and try to decompress FlateDecode
+  const streamRegex = /\/Filter\s*\/FlateDecode[\s\S]*?stream\s*\r?\n([\s\S]*?)endstream/g;
   let match: RegExpExecArray | null;
-  while ((match = btRegex.exec(utf8)) !== null) {
+  while ((match = streamRegex.exec(raw)) !== null) {
+    try {
+      const compressed = Buffer.from(match[1]!, "latin1");
+      const decompressed = require("zlib").inflateSync(compressed).toString("utf-8");
+      // Extract text between BT/ET
+      const btRegex = /BT\s*([\s\S]*?)\s*ET/g;
+      let btMatch: RegExpExecArray | null;
+      while ((btMatch = btRegex.exec(decompressed)) !== null) {
+        const tjRegex = /\(([^)]*)\)\s*Tj/g;
+        let tjMatch: RegExpExecArray | null;
+        while ((tjMatch = tjRegex.exec(btMatch[1]!)) !== null) {
+          const txt = tjMatch[1]!.trim();
+          if (txt.length > 1 && !/^[\\\/\[\]<>]+$/.test(txt)) texts.push(txt);
+        }
+      }
+      // Also try TJ arrays
+      const tjArrayRegex = /\[([^\]]*)\]\s*TJ/g;
+      let tjArrMatch: RegExpExecArray | null;
+      while ((tjArrMatch = tjArrayRegex.exec(decompressed)) !== null) {
+        const strMatch = tjArrMatch[1]!.match(/\(([^)]*)\)/g);
+        if (strMatch) {
+          strMatch.forEach(s => {
+            const t = s.slice(1, -1).trim();
+            if (t.length > 1) texts.push(t);
+          });
+        }
+      }
+    } catch {}
+  }
+
+  // Also extract uncompressed BT/ET text
+  const btRegex = /BT\s*([\s\S]*?)\s*ET/g;
+  while ((match = btRegex.exec(raw)) !== null) {
     const block = match[1]!;
     const tjRegex = /\(([^)]*)\)\s*Tj/g;
     let tjMatch: RegExpExecArray | null;
@@ -251,27 +283,9 @@ function extractPDFText(buffer: Buffer): string {
     }
   }
 
-  // If BT/ET extraction found text, return it
-  if (texts.length > 5) {
+  if (texts.length > 0) {
     return texts.join(" ").replace(/\s+/g, " ").trim();
   }
 
-  // Fallback 1: try to find text in stream objects
-  const streamRegex = /stream\s+([\s\S]*?)endstream/g;
-  let streamMatch: RegExpExecArray | null;
-  const streamTexts: string[] = [];
-  while ((streamMatch = streamRegex.exec(utf8)) !== null) {
-    const content = streamMatch[1]!;
-    const readable = content.replace(/[^\x20-\x7E\xC0-\xFF\n\r\t]/g, " ")
-      .replace(/\s+/g, " ").trim();
-    if (readable.length > 10) streamTexts.push(readable.slice(0, 500));
-  }
-  if (streamTexts.length > 0) {
-    return streamTexts.join("\n").slice(0, 6000);
-  }
-
-  // Fallback 2: remove non-printable chars
-  const readable = utf8.replace(/[^\x20-\x7E\xC0-\xFF\n\r\t]/g, " ");
-  const cleaned = readable.replace(/\s+/g, " ").trim();
-  return cleaned.slice(0, 6000);
+  return "";
 }
