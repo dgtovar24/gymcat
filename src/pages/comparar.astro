@@ -39,6 +39,7 @@ if (gym1Slug && gym2Slug) {
   }
 }
 
+const allFacilities = await db.select().from(facilities).orderBy(asc(facilities.name));
 const gymsJSON = JSON.stringify(allGyms.map(g => ({ id: g.id, name: g.name, slug: g.slug, imageUrl: g.imageUrl })));
 ---
 
@@ -99,8 +100,8 @@ const gymsJSON = JSON.stringify(allGyms.map(g => ({ id: g.id, name: g.name, slug
                 </tr>
                 <tr>
                   <td style="font-weight:600;">Matr&iacute;cula</td>
-                  <td style="text-align:center;font-family:var(--font-mono);">{gym1.matriculaFee ? Number(gym1.matriculaFee).toFixed(0) + '€' : '<span style="color:#22c55e;">Gratis</span>'}</td>
-                  <td style="text-align:center;font-family:var(--font-mono);">{gym2.matriculaFee ? Number(gym2.matriculaFee).toFixed(0) + '€' : '<span style="color:#22c55e;">Gratis</span>'}</td>
+                  <td style="text-align:center;font-family:var(--font-mono);">{gym1.matriculaFee ? Number(gym1.matriculaFee).toFixed(0) + '€' : <span style="color:#22c55e;">Gratis</span>}</td>
+                  <td style="text-align:center;font-family:var(--font-mono);">{gym2.matriculaFee ? Number(gym2.matriculaFee).toFixed(0) + '€' : <span style="color:#22c55e;">Gratis</span>}</td>
                 </tr>
                 <tr>
                   <td style="font-weight:600;">Mantenimiento anual</td>
@@ -118,18 +119,29 @@ const gymsJSON = JSON.stringify(allGyms.map(g => ({ id: g.id, name: g.name, slug
                 </tr>
                 <tr>
                   <td style="font-weight:600;">Abierto 24h</td>
-                  <td style="text-align:center;">{gym1.isOpen247 ? '<span style="color:#22c55e;font-weight:500;">S&iacute;</span>' : 'No'}</td>
-                  <td style="text-align:center;">{gym2.isOpen247 ? '<span style="color:#22c55e;font-weight:500;">S&iacute;</span>' : 'No'}</td>
+                  <td style="text-align:center;">{gym1.isOpen247 ? <span style="color:#22c55e;font-weight:500;">S&iacute;</span> : 'No'}</td>
+                  <td style="text-align:center;">{gym2.isOpen247 ? <span style="color:#22c55e;font-weight:500;">S&iacute;</span> : 'No'}</td>
                 </tr>
+                <tr><td colspan="3" style="font-weight:600;font-size:12px;color:var(--color-mid-gray);padding:12px 0 4px 0;border-bottom:1px solid rgba(34,42,53,0.06);">INSTALACIONES</td></tr>
+                {allFacilities.map(f => (
+                  <tr>
+                    <td style="font-weight:500;font-size:13px;">{f.name}</td>
+                    <td style="text-align:center;">
+                      {gym1Facilities.includes(f.slug)
+                        ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        : <span style="color:#ccc;">—</span>}
+                    </td>
+                    <td style="text-align:center;">
+                      {gym2Facilities.includes(f.slug)
+                        ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        : <span style="color:#ccc;">—</span>}
+                    </td>
+                  </tr>
+                ))}
                 <tr>
                   <td style="font-weight:600;">Direcci&oacute;n</td>
                   <td style="text-align:center;font-size:13px;color:var(--color-mid-gray);">{gym1.address || '—'}</td>
                   <td style="text-align:center;font-size:13px;color:var(--color-mid-gray);">{gym2.address || '—'}</td>
-                </tr>
-                <tr>
-                  <td style="font-weight:600;">Tel&eacute;fono</td>
-                  <td style="text-align:center;">{gym1.phone ? `<a href="tel:${gym1.phone}" style="color:var(--color-link-blue);">${gym1.phone}</a>` : '—'}</td>
-                  <td style="text-align:center;">{gym2.phone ? `<a href="tel:${gym2.phone}" style="color:var(--color-link-blue);">${gym2.phone}</a>` : '—'}</td>
                 </tr>
               </tbody>
             </table>
