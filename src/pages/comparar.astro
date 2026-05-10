@@ -126,15 +126,15 @@ const gymsJSON = JSON.stringify(allGyms.map(g => ({ id: g.id, name: g.name, slug
                 {allFacilities.map(f => (
                   <tr style="border-bottom:1px solid #f3f4f6;">
                     <td style="font-weight:500;font-size:13px;padding:8px 14px;">{f.name}</td>
-                    <td style="text-align:center;padding:8px 14px;border-left:2px solid #e5e7eb;border-right:2px solid #e5e7eb;">
+                    <td style="text-align:center;vertical-align:middle;padding:8px 14px;border-left:2px solid #e5e7eb;border-right:2px solid #e5e7eb;">
                       {gym1Facilities.includes(f.slug)
-                        ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
+                        ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" style="display:inline-block;vertical-align:middle;"><polyline points="20 6 9 17 4 12"/></svg>
+                        : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" style="display:inline-block;vertical-align:middle;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
                     </td>
-                    <td style="text-align:center;padding:8px 14px;">
+                    <td style="text-align:center;vertical-align:middle;padding:8px 14px;">
                       {gym2Facilities.includes(f.slug)
-                        ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
+                        ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" style="display:inline-block;vertical-align:middle;"><polyline points="20 6 9 17 4 12"/></svg>
+                        : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" style="display:inline-block;vertical-align:middle;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
                     </td>
                   </tr>
                 ))}
