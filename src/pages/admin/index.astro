@@ -436,11 +436,21 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       await lf(id); rf();
       await loadUrls(id);
     };
-    document.getElementById('eiu').addEventListener('input', function() {
-      const p = document.getElementById('eip');
-      if (this.value) { p.src = this.value; p.style.display = 'block'; } else { p.style.display = 'none'; }
-    });
-    document.getElementById('editModal').addEventListener('click', function(e) { if (e.target === this) window._closeEdit(); });
+    // Image preview on input
+    var eiuEl = document.getElementById('eiu');
+    if (eiuEl) {
+      eiuEl.addEventListener('input', function() {
+        const p = document.getElementById('eip');
+        if (p) {
+          if (this.value) { p.src = this.value; p.style.display = 'block'; }
+          else { p.style.display = 'none'; }
+        }
+      });
+    }
+    var modalEl = document.getElementById('editModal');
+    if (modalEl) {
+      modalEl.addEventListener('click', function(e) { if (e.target === this) window._closeEdit(); });
+    }
 
     // PDF drop zone
     var pdfFile = null;
