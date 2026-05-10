@@ -306,9 +306,8 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
           <div class="fr"><div class="fg"><label>Nombre</label><input type="text" name="name" id="en" required class="ai-field"></div><div class="fg"><label>Slug</label><input type="text" name="slug" id="eslug" required class="ai-field"></div></div>
           <div class="fg"><label>Direcci&oacute;n</label><input type="text" name="address" id="ea" class="ai-field"></div>
           <div class="fr"><div class="fg"><label>Precio mensual (&euro;/mes)</label><input type="number" step="0.01" name="monthly_price_low" id="eml" placeholder="Ej: 29.99" class="ai-field"></div><div class="fg"><label>Matr&iacute;cula (&euro;)</label><input type="number" step="0.01" name="matricula_fee" id="emf" placeholder="Pago &uacute;nico" class="ai-field"></div></div>
-          <div class="fr"><div class="fg"><label>Mantenimiento anual (&euro;)</label><input type="number" step="0.01" name="annual_maintenance_fee" id="emaf" placeholder="Ej: 25" class="ai-field"></div><div class="fg"><label>Coste total 1er a&ntilde;o (&euro;)</label><input type="number" step="0.01" name="annual_maintenance_fee_total" id="efyt" placeholder="Manual" style="background:#fff;"></div></div>
-          <div class="fr"><div class="fg"><label>Precio por d&iacute;a (&euro;)</label><input type="number" step="0.01" name="daily_price" id="edaily" placeholder="Ej: 9.99" class="ai-field"></div><div class="fg"><label>Periodo de pago</label><select name="price_period" id="eperiod"><option value="monthly">Mensual</option><option value="yearly">Anual</option><option value="daily">Diario</option></select></div></div>
-          <div class="fr"><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="price_is_verified" id="epriceok" value="true" style="width:auto;">He pagado este precio</label></div></div>
+          <div class="fr"><div class="fg"><label>Mantenimiento anual (&euro;)</label><input type="number" step="0.01" name="annual_maintenance_fee" id="emaf" placeholder="Ej: 25" class="ai-field"></div><div class="fg"><label>Precio por d&iacute;a (&euro;)</label><input type="number" step="0.01" name="daily_price" id="edaily" placeholder="Ej: 9.99" class="ai-field"></div></div>
+          <div class="fr"><div class="fg"><label>Periodo de pago</label><select name="price_period" id="eperiod"><option value="monthly">Mensual</option><option value="yearly">Anual</option><option value="daily">Diario</option></select><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="price_is_verified" id="epriceok" value="true" style="width:auto;">He pagado este precio</label></div></div>
           <div class="fr"><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_open_247" id="e247" value="true" style="width:auto;" class="ai-field">Abierto 24h</label></div><div class="fg"><label>Tel&eacute;fono</label><input type="text" name="phone" id="eph" class="ai-field"></div></div>
           <div class="fg"><label>Instalaciones</label><div class="fac-grid" id="fc"></div></div>
         </div>
@@ -388,7 +387,6 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       document.getElementById('eml').value = '';
       document.getElementById('emf').value = '';
       document.getElementById('emaf').value = '';
-      document.getElementById('efyt').value = '';
       document.getElementById('egpid').value = '';
       document.getElementById('echain').value = '';
       document.getElementById('e247').checked = false;
@@ -422,7 +420,6 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       document.getElementById('eml').value = g.monthly_price_low || '';
       document.getElementById('emf').value = g.matricula_fee || '';
       document.getElementById('emaf').value = g.annual_maintenance_fee || '';
-      document.getElementById('efyt').value = g.monthly_price_low && g.matricula_fee != null ? ((g.monthly_price_low * 12) + (g.matricula_fee || 0) + (g.annual_maintenance_fee || 0)).toFixed(0) : '';
       document.getElementById('egpid').value = g.google_place_id || '';
       document.getElementById('echain').value = g.chain_id || '';
       document.getElementById('e247').checked = g.is_open_247;
@@ -444,15 +441,6 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       if (this.value) { p.src = this.value; p.style.display = 'block'; } else { p.style.display = 'none'; }
     });
     document.getElementById('editModal').addEventListener('click', function(e) { if (e.target === this) window._closeEdit(); });
-
-    window.calcFirstYear = function() {
-      var ml = parseFloat(document.getElementById('eml').value) || 0;
-      var mf = parseFloat(document.getElementById('emf').value) || 0;
-      var af = parseFloat(document.getElementById('emaf').value) || 0;
-      document.getElementById('efyt').value = ((ml * 12) + mf + af).toFixed(0);
-    }
-    document.getElementById('eml').addEventListener('input', calcFirstYear);
-    document.getElementById('emf').addEventListener('input', calcFirstYear);
 
     // PDF drop zone
     var pdfFile = null;
