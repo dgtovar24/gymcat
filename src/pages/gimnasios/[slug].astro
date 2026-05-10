@@ -125,11 +125,17 @@ function facIcon(icon: string | null) {
           <div style="margin:16px 0 20px 0;padding:16px 0;border-top:1px solid rgba(34,42,53,0.08);border-bottom:1px solid rgba(34,42,53,0.08);">
             <div style="display:flex;align-items:baseline;gap:6px;">
               <span style="font-family:var(--font-mono);font-size:32px;font-weight:600;color:var(--color-charcoal);line-height:1;">{monthlyLow.toFixed(0)}&euro;</span>
-              <span style="font-size:14px;font-weight:300;color:var(--color-mid-gray);">/mes</span>
+              <span style="font-size:14px;font-weight:300;color:var(--color-mid-gray);">/{gym.pricePeriod === 'daily' ? 'día' : gym.pricePeriod === 'yearly' ? 'año' : 'mes'}</span>
+              {gym.priceIsVerified && <span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:500;color:white;background:#3b82f6;padding:2px 8px;border-radius:var(--radius-pill);cursor:help;margin-left:8px;" title="He pagado este precio personalmente para usar el gimnasio. No es un precio estimado.">&#10003; Precio verificado</span>}
             </div>
-            <p style="font-size:11px;font-weight:300;color:var(--color-mid-gray);margin-top:4px;line-height:1.4;">
-              Precio para persona habitual. Puede variar seg&uacute;n ofertas, edad, estudiante, pareja u otras condiciones.
-            </p>
+            {gym.priceIsVerified
+              ? <p style="font-size:11px;font-weight:300;color:#3b82f6;margin-top:4px;line-height:1.4;">He pagado este precio para usar el gimnasio. Precio real bajo mi experiencia personal.</p>
+              : <p style="font-size:11px;font-weight:300;color:var(--color-mid-gray);margin-top:4px;line-height:1.4;">Los costes var&iacute;an seg&uacute;n ofertas, temporadas y caracter&iacute;sticas del cliente.</p>}
+            {gym.dailyPrice ? (
+              <p style="font-size:13px;font-weight:400;color:var(--color-mid-gray);margin-top:4px;">
+                Tambi&eacute;n disponible por <strong style="color:var(--color-charcoal);">{Number(gym.dailyPrice).toFixed(0)}&euro;/d&iacute;a</strong>
+              </p>
+            ) : null}
             <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;font-size:13px;color:var(--color-mid-gray);">
               {matricula > 0 ? <span>Matr&iacute;cula: <strong style="color:var(--color-charcoal);">{matricula.toFixed(0)}&euro;</strong></span> : <span style="color:#22c55e;">Sin matr&iacute;cula</span>}
               {annualMaint > 0 && <span>Mant. anual: <strong style="color:var(--color-charcoal);">{annualMaint.toFixed(0)}&euro;</strong></span>}
@@ -165,7 +171,7 @@ function facIcon(icon: string | null) {
         <div class="card">
           <h3 style="font-weight:600;color:var(--color-charcoal);margin-bottom:16px;display:flex;align-items:center;gap:6px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="12" x2="16" y2="14"/></svg>
-            Coste real del primer a&ntilde;o
+            Costes
           </h3>
           <div style="display:flex;flex-direction:column;gap:8px;">
             <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(34,42,53,0.05);"><span style="font-size:14px;color:var(--color-charcoal);">Mensualidad &times; 12</span><span class="mono" style="font-size:14px;">{(monthlyLow * 12).toFixed(0)}&euro;</span></div>

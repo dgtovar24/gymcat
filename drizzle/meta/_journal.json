@@ -57,6 +57,13 @@
       "when": 1778356058055,
       "tag": "0007_illegal_war_machine",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1778454991775,
+      "tag": "0008_pretty_shocker",
+      "breakpoints": true
     }
   ]
 }

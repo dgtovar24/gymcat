@@ -66,6 +66,9 @@ if (Astro.request.method === "POST") {
       const vr = formData.get("verified_review")?.toString();
       const pros = formData.get("ai_summary_pros")?.toString();
       const cons = formData.get("ai_summary_cons")?.toString();
+      const dp = formData.get("daily_price")?.toString();
+      const pp = formData.get("price_period")?.toString();
+      const pv = formData.get("price_is_verified")?.toString();
       if (ml) updates.monthlyPriceLow = ml;
       if (mf) updates.matriculaFee = mf;
       if (af) updates.annualMaintenanceFee = af;
@@ -74,6 +77,9 @@ if (Astro.request.method === "POST") {
       if (vr !== undefined) updates.verifiedReview = vr || null;
       if (pros !== undefined) updates.aiSummaryPros = pros ? pros.split("|||").filter(Boolean) : [];
       if (cons !== undefined) updates.aiSummaryCons = cons ? cons.split("|||").filter(Boolean) : [];
+      if (dp !== undefined) updates.dailyPrice = dp || null;
+      if (pp !== undefined) updates.pricePeriod = pp || "monthly";
+      updates.priceIsVerified = pv === "true";
       await db.update(gyms).set(updates).where(eq(gyms.id, gymId));
 
       // Facilities
@@ -111,6 +117,9 @@ const gymData = allGyms.map(g => ({
   matricula_fee: g.matriculaFee ? Number(g.matriculaFee) : null,
   annual_maintenance_fee: g.annualMaintenanceFee ? Number(g.annualMaintenanceFee) : null,
   is_verified: g.isVerified, verified_review: g.verifiedReview || "",
+  price_is_verified: g.priceIsVerified,
+  daily_price: g.dailyPrice ? Number(g.dailyPrice) : null,
+  price_period: g.pricePeriod || "monthly",
   google_place_id: g.googlePlaceId || "", is_open_247: g.isOpen247, chain_id: g.chainId, city_id: g.cityId,
 }));
 
@@ -297,7 +306,9 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
           <div class="fr"><div class="fg"><label>Nombre</label><input type="text" name="name" id="en" required class="ai-field"></div><div class="fg"><label>Slug</label><input type="text" name="slug" id="eslug" required class="ai-field"></div></div>
           <div class="fg"><label>Direcci&oacute;n</label><input type="text" name="address" id="ea" class="ai-field"></div>
           <div class="fr"><div class="fg"><label>Precio mensual (&euro;/mes)</label><input type="number" step="0.01" name="monthly_price_low" id="eml" placeholder="Ej: 29.99" class="ai-field"></div><div class="fg"><label>Matr&iacute;cula (&euro;)</label><input type="number" step="0.01" name="matricula_fee" id="emf" placeholder="Pago &uacute;nico" class="ai-field"></div></div>
-          <div class="fr"><div class="fg"><label>Mantenimiento anual (&euro;)</label><input type="number" step="0.01" name="annual_maintenance_fee" id="emaf" placeholder="Ej: 25" oninput="calcFirstYear()" class="ai-field"></div><div class="fg"><label>Total 1er a&ntilde;o (&euro;)</label><input type="number" step="0.01" id="efyt" readonly style="background:#f5f5f5;color:#555;"></div></div>
+          <div class="fr"><div class="fg"><label>Mantenimiento anual (&euro;)</label><input type="number" step="0.01" name="annual_maintenance_fee" id="emaf" placeholder="Ej: 25" class="ai-field"></div><div class="fg"><label>Coste total 1er a&ntilde;o (&euro;)</label><input type="number" step="0.01" name="annual_maintenance_fee_total" id="efyt" placeholder="Manual" style="background:#fff;"></div></div>
+          <div class="fr"><div class="fg"><label>Precio por d&iacute;a (&euro;)</label><input type="number" step="0.01" name="daily_price" id="edaily" placeholder="Ej: 9.99" class="ai-field"></div><div class="fg"><label>Periodo de pago</label><select name="price_period" id="eperiod"><option value="monthly">Mensual</option><option value="yearly">Anual</option><option value="daily">Diario</option></select></div></div>
+          <div class="fr"><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="price_is_verified" id="epriceok" value="true" style="width:auto;">He pagado este precio</label></div></div>
           <div class="fr"><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_open_247" id="e247" value="true" style="width:auto;" class="ai-field">Abierto 24h</label></div><div class="fg"><label>Tel&eacute;fono</label><input type="text" name="phone" id="eph" class="ai-field"></div></div>
           <div class="fg"><label>Instalaciones</label><div class="fac-grid" id="fc"></div></div>
         </div>
@@ -383,6 +394,9 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       document.getElementById('e247').checked = false;
       document.getElementById('everified').checked = false;
       document.getElementById('everifiedreview').value = '';
+      document.getElementById('edaily').value = '';
+      document.getElementById('eperiod').value = 'monthly';
+      document.getElementById('epriceok').checked = false;
       document.getElementById('ai-pros').value = '';
       document.getElementById('ai-cons').value = '';
       document.getElementById('eip').style.display = 'none';
@@ -414,6 +428,9 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       document.getElementById('e247').checked = g.is_open_247;
       document.getElementById('everified').checked = g.is_verified || false;
       document.getElementById('everifiedreview').value = g.verified_review || '';
+      document.getElementById('edaily').value = g.daily_price || '';
+      document.getElementById('eperiod').value = g.price_period || 'monthly';
+      document.getElementById('epriceok').checked = g.price_is_verified || false;
       const p = document.getElementById('eip');
       if (g.image_url) { p.src = g.image_url; p.style.display = 'block'; } else { p.style.display = 'none'; }
       document.getElementById('modalTitle').textContent = 'Editar: ' + g.name;

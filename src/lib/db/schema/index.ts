@@ -189,6 +189,11 @@ export const gyms = pgTable(
     isVerified: boolean("is_verified").default(false),
     verifiedReview: text("verified_review"),
 
+    // Price verification
+    priceIsVerified: boolean("price_is_verified").default(false),
+    dailyPrice: decimal("daily_price", { precision: 10, scale: 2 }),
+    pricePeriod: varchar("price_period", { length: 20 }).default("monthly"), // monthly, yearly, daily
+
     // Operations
     isOpen247: boolean("is_open_247").default(false),
     openingHours: jsonb("opening_hours"),
