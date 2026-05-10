@@ -86,10 +86,10 @@ function facIcon(icon: string | null) {
       <div class="mkt-grid">
         <!-- LEFT: Gallery -->
         <div>
-          {images.length > 0 ? (
+          {images.length > 0 || gym.imageUrl ? (
             <div>
               <div style="position:relative;background:#0a0a0a;border-radius:var(--radius-12);overflow:hidden;aspect-ratio:4/3;box-shadow:var(--shadow-card);">
-                <img id="gallery-main-img" src={images[0]!.imageUrl} alt={gym.name} style="width:100%;height:100%;object-fit:cover;display:block;" />
+                <img id="gallery-main-img" src={images.length > 0 ? images[0]!.imageUrl : gym.imageUrl!} alt={gym.name} style="width:100%;height:100%;object-fit:cover;display:block;" />
                 {images.length > 1 && (<>
                   <button id="gallery-prev" onclick="window._galleryNav(-1)" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.9);color:#242424;border:none;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);">&lsaquo;</button>
                   <button id="gallery-next" onclick="window._galleryNav(1)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.9);color:#242424;border:none;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);">&rsaquo;</button>
