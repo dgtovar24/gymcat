@@ -90,58 +90,58 @@ const gymsJSON = JSON.stringify(allGyms.map(g => ({ id: g.id, name: g.name, slug
             </div>
 
             <!-- Comparison rows -->
-            <table class="admin-table" style="width:100%;">
-              <thead><tr><th style="width:28%;"></th><th style="width:36%;text-align:center;">Gimnasio A</th><th style="width:36%;text-align:center;">Gimnasio B</th></tr></thead>
+            <table style="width:100%;border-collapse:collapse;border:2px solid #d1d5db;">
+              <thead><tr style="border-bottom:2px solid #d1d5db;"><th style="width:28%;padding:10px 14px;text-align:left;"></th><th style="width:36%;text-align:center;padding:10px 14px;border-left:2px solid #d1d5db;border-right:2px solid #d1d5db;">Gimnasio A</th><th style="width:36%;text-align:center;padding:10px 14px;">Gimnasio B</th></tr></thead>
               <tbody>
-                <tr>
-                  <td style="font-weight:600;">Precio mensual</td>
-                  <td style="text-align:center;font-family:var(--font-mono);">{gym1.monthlyPriceLow ? Number(gym1.monthlyPriceLow).toFixed(0) + '€' : '—'}</td>
-                  <td style="text-align:center;font-family:var(--font-mono);">{gym2.monthlyPriceLow ? Number(gym2.monthlyPriceLow).toFixed(0) + '€' : '—'}</td>
+                <tr style="border-bottom:1px solid #e5e7eb;">
+                  <td style="font-weight:600;padding:10px 14px;">Precio mensual</td>
+                  <td style="text-align:center;font-family:var(--font-mono);padding:10px 14px;border-left:2px solid #e5e7eb;border-right:2px solid #e5e7eb;">{gym1.monthlyPriceLow ? Number(gym1.monthlyPriceLow).toFixed(0) + '€' : <span style="color:#9ca3af;font-style:italic;">Sin datos</span>}</td>
+                  <td style="text-align:center;font-family:var(--font-mono);padding:10px 14px;">{gym2.monthlyPriceLow ? Number(gym2.monthlyPriceLow).toFixed(0) + '€' : <span style="color:#9ca3af;font-style:italic;">Sin datos</span>}</td>
                 </tr>
-                <tr>
-                  <td style="font-weight:600;">Matr&iacute;cula</td>
-                  <td style="text-align:center;font-family:var(--font-mono);">{gym1.matriculaFee ? Number(gym1.matriculaFee).toFixed(0) + '€' : <span style="color:#22c55e;">Gratis</span>}</td>
-                  <td style="text-align:center;font-family:var(--font-mono);">{gym2.matriculaFee ? Number(gym2.matriculaFee).toFixed(0) + '€' : <span style="color:#22c55e;">Gratis</span>}</td>
+                <tr style="border-bottom:1px solid #e5e7eb;">
+                  <td style="font-weight:600;padding:10px 14px;">Matr&iacute;cula</td>
+                  <td style="text-align:center;font-family:var(--font-mono);padding:10px 14px;border-left:2px solid #e5e7eb;border-right:2px solid #e5e7eb;">{gym1.matriculaFee ? Number(gym1.matriculaFee).toFixed(0) + '€' : <span style="color:#22c55e;">Gratis</span>}</td>
+                  <td style="text-align:center;font-family:var(--font-mono);padding:10px 14px;">{gym2.matriculaFee ? Number(gym2.matriculaFee).toFixed(0) + '€' : <span style="color:#22c55e;">Gratis</span>}</td>
                 </tr>
-                <tr>
-                  <td style="font-weight:600;">Mantenimiento anual</td>
-                  <td style="text-align:center;font-family:var(--font-mono);">{gym1.annualMaintenanceFee ? Number(gym1.annualMaintenanceFee).toFixed(0) + '€' : '—'}</td>
-                  <td style="text-align:center;font-family:var(--font-mono);">{gym2.annualMaintenanceFee ? Number(gym2.annualMaintenanceFee).toFixed(0) + '€' : '—'}</td>
+                <tr style="border-bottom:1px solid #e5e7eb;">
+                  <td style="font-weight:600;padding:10px 14px;">Mantenimiento anual</td>
+                  <td style="text-align:center;font-family:var(--font-mono);padding:10px 14px;border-left:2px solid #e5e7eb;border-right:2px solid #e5e7eb;">{gym1.annualMaintenanceFee ? Number(gym1.annualMaintenanceFee).toFixed(0) + '€' : <span style="color:#9ca3af;font-style:italic;">Sin datos</span>}</td>
+                  <td style="text-align:center;font-family:var(--font-mono);padding:10px 14px;">{gym2.annualMaintenanceFee ? Number(gym2.annualMaintenanceFee).toFixed(0) + '€' : <span style="color:#9ca3af;font-style:italic;">Sin datos</span>}</td>
                 </tr>
-                <tr>
-                  <td style="font-weight:600;">Coste total 1er a&ntilde;o</td>
-                  <td style="text-align:center;font-family:var(--font-mono);font-weight:600;font-size:15px;">
-                    {gym1.monthlyPriceLow ? ((Number(gym1.monthlyPriceLow) * 12) + Number(gym1.matriculaFee || 0) + Number(gym1.annualMaintenanceFee || 0)).toFixed(0) + '€' : '—'}
+                <tr style="border-bottom:2px solid #d1d5db;">
+                  <td style="font-weight:600;padding:10px 14px;">Coste total 1er a&ntilde;o</td>
+                  <td style="text-align:center;font-family:var(--font-mono);font-weight:600;font-size:15px;padding:10px 14px;border-left:2px solid #e5e7eb;border-right:2px solid #e5e7eb;">
+                    {gym1.monthlyPriceLow ? ((Number(gym1.monthlyPriceLow) * 12) + Number(gym1.matriculaFee || 0) + Number(gym1.annualMaintenanceFee || 0)).toFixed(0) + '€' : <span style="color:#9ca3af;font-style:italic;">Sin datos</span>}
                   </td>
-                  <td style="text-align:center;font-family:var(--font-mono);font-weight:600;font-size:15px;">
-                    {gym2.monthlyPriceLow ? ((Number(gym2.monthlyPriceLow) * 12) + Number(gym2.matriculaFee || 0) + Number(gym2.annualMaintenanceFee || 0)).toFixed(0) + '€' : '—'}
+                  <td style="text-align:center;font-family:var(--font-mono);font-weight:600;font-size:15px;padding:10px 14px;">
+                    {gym2.monthlyPriceLow ? ((Number(gym2.monthlyPriceLow) * 12) + Number(gym2.matriculaFee || 0) + Number(gym2.annualMaintenanceFee || 0)).toFixed(0) + '€' : <span style="color:#9ca3af;font-style:italic;">Sin datos</span>}
                   </td>
                 </tr>
-                <tr>
-                  <td style="font-weight:600;">Abierto 24h</td>
-                  <td style="text-align:center;">{gym1.isOpen247 ? <span style="color:#22c55e;font-weight:500;">S&iacute;</span> : 'No'}</td>
-                  <td style="text-align:center;">{gym2.isOpen247 ? <span style="color:#22c55e;font-weight:500;">S&iacute;</span> : 'No'}</td>
+                <tr style="border-bottom:1px solid #e5e7eb;">
+                  <td style="font-weight:600;padding:10px 14px;">Abierto 24h</td>
+                  <td style="text-align:center;padding:10px 14px;border-left:2px solid #e5e7eb;border-right:2px solid #e5e7eb;">{gym1.isOpen247 ? <span style="color:#22c55e;font-weight:500;">S&iacute;</span> : <span style="color:#9ca3af;font-style:italic;">Sin datos</span>}</td>
+                  <td style="text-align:center;padding:10px 14px;">{gym2.isOpen247 ? <span style="color:#22c55e;font-weight:500;">S&iacute;</span> : <span style="color:#9ca3af;font-style:italic;">Sin datos</span>}</td>
                 </tr>
-                <tr><td colspan="3" style="font-weight:600;font-size:12px;color:var(--color-mid-gray);padding:12px 0 4px 0;border-bottom:1px solid rgba(34,42,53,0.06);">INSTALACIONES</td></tr>
+                <tr style="border-bottom:2px solid #d1d5db;"><td colspan="3" style="font-weight:600;font-size:12px;color:var(--color-mid-gray);padding:12px 14px;background:#f9fafb;">INSTALACIONES</td></tr>
                 {allFacilities.map(f => (
-                  <tr>
-                    <td style="font-weight:500;font-size:13px;">{f.name}</td>
-                    <td style="text-align:center;">
+                  <tr style="border-bottom:1px solid #f3f4f6;">
+                    <td style="font-weight:500;font-size:13px;padding:8px 14px;">{f.name}</td>
+                    <td style="text-align:center;padding:8px 14px;border-left:2px solid #e5e7eb;border-right:2px solid #e5e7eb;">
                       {gym1Facilities.includes(f.slug)
                         ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        : <span style="color:#ccc;">—</span>}
+                        : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
                     </td>
-                    <td style="text-align:center;">
+                    <td style="text-align:center;padding:8px 14px;">
                       {gym2Facilities.includes(f.slug)
                         ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        : <span style="color:#ccc;">—</span>}
+                        : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
                     </td>
                   </tr>
                 ))}
                 <tr>
-                  <td style="font-weight:600;">Direcci&oacute;n</td>
-                  <td style="text-align:center;font-size:13px;color:var(--color-mid-gray);">{gym1.address || '—'}</td>
-                  <td style="text-align:center;font-size:13px;color:var(--color-mid-gray);">{gym2.address || '—'}</td>
+                  <td style="font-weight:600;padding:10px 14px;">Direcci&oacute;n</td>
+                  <td style="text-align:center;font-size:13px;color:var(--color-mid-gray);padding:10px 14px;border-left:2px solid #e5e7eb;border-right:2px solid #e5e7eb;">{gym1.address || <span style="color:#9ca3af;font-style:italic;">Sin datos</span>}</td>
+                  <td style="text-align:center;font-size:13px;color:var(--color-mid-gray);padding:10px 14px;">{gym2.address || <span style="color:#9ca3af;font-style:italic;">Sin datos</span>}</td>
                 </tr>
               </tbody>
             </table>
