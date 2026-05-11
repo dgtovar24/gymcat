@@ -6,9 +6,8 @@ import { settings } from "@lib/db/schema";
 const all = await db.select().from(settings);
 const getS = (key: string, def = "") => all.find(s => s.key === key)?.value || def;
 
-const instagram = getS("social_instagram", "https://instagram.com/diegozaldivar");
-const twitter = getS("social_twitter", "https://twitter.com/diegozaldivar");
-const linkedin = getS("social_linkedin", "https://linkedin.com/in/diegozaldivar");
+const instagram = getS("social_instagram", "https://instagram.com/dg.tovar");
+const linkedin = getS("social_linkedin", "https://linkedin.com/in/dgtovar");
 const tiktok = getS("social_tiktok", "");
 const youtube = getS("social_youtube", "");
 ---
@@ -29,18 +28,15 @@ const youtube = getS("social_youtube", "");
       <!-- Photo -->
       <div style="display:flex;flex-direction:column;align-items:center;gap:20px;">
         <div style="width:180px;height:180px;border-radius:50%;overflow:hidden;background:var(--color-off-white);box-shadow:var(--shadow-card);border:3px solid var(--color-charcoal);">
-          <img src="/ac4f88b9-109e-4855-af2d-ce30c7138fcd.png" alt="Diego Zaldivar" style="width:100%;height:100%;object-fit:cover;" />
+          <img src="/ac4f88b9-109e-4855-af2d-ce30c7138fcd.png" alt="Diego Tovar" style="width:100%;height:100%;object-fit:cover;" />
         </div>
         <div>
-          <h2 style="font-size:24px;font-weight:600;text-align:center;margin-bottom:4px;">Diego Zaldivar</h2>
+          <h2 style="font-size:24px;font-weight:600;text-align:center;margin-bottom:4px;">Diego Tovar</h2>
           <p style="font-size:14px;font-weight:300;color:var(--color-mid-gray);text-align:center;">Fundador de GymCat</p>
         </div>
         <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
           {instagram && <a href={instagram} target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--radius-8);box-shadow:var(--shadow-ring-border);text-decoration:none;font-size:13px;font-weight:500;color:var(--color-charcoal);transition:opacity 0.15s;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5"/></svg> Instagram
-          </a>}
-          {twitter && <a href={twitter} target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--radius-8);box-shadow:var(--shadow-ring-border);text-decoration:none;font-size:13px;font-weight:500;color:var(--color-charcoal);transition:opacity 0.15s;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l6 8-6 8"/><path d="M20 4l-6 8 6 8"/></svg> Twitter
           </a>}
           {linkedin && <a href={linkedin} target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--radius-8);box-shadow:var(--shadow-ring-border);text-decoration:none;font-size:13px;font-weight:500;color:var(--color-charcoal);transition:opacity 0.15s;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="7" cy="9" r="2"/><path d="M6.5 13h1v7h-1z"/><path d="M17 9a4 4 0 0 0-4 4v3h1.5v-3a2.5 2.5 0 0 1 5 0v3H21v-3a5 5 0 0 0-4-5z"/></svg> LinkedIn
@@ -59,35 +55,38 @@ const youtube = getS("social_youtube", "");
         <h3 style="font-size:20px;font-weight:600;margin-bottom:16px;">Mi historia</h3>
 
         <p style="font-size:14px;font-weight:300;color:var(--color-mid-gray);margin-bottom:16px;">
-          Soy <strong style="color:var(--color-charcoal);">Diego Zaldivar</strong> y me encanta ir al gimnasio. Soy de esas personas
+          Soy <strong style="color:var(--color-charcoal);">Diego Tovar</strong> y me encanta ir al gimnasio. Soy de esas personas
           que prueban diferentes gimnasios, comparan instalaciones, miran precios y horarios. Pero siempre me encontraba
           con el mismo problema: <strong style="color:var(--color-charcoal);">no sab&iacute;a a cu&aacute;l ir.</strong>
         </p>
 
         <p style="font-size:14px;font-weight:300;color:var(--color-mid-gray);margin-bottom:16px;">
-          Cada vez que quer&iacute;a cambiar de gimnasio o buscar uno nuevo, ten&iacute;a que entrar en 5 o 6 webs diferentes,
-          buscar los precios (que muchas veces estaban escondidos), comparar instalaciones, leer rese&ntilde;as... Era un proceso
-          que me llevaba horas. Y lo peor: muchas veces los precios que ve&iacute;a en la web no inclu&iacute;an la matr&iacute;cula,
-          o el mantenimiento anual, o la permanencia m&iacute;nima.
+          Cada vez que quer&iacute;a probar un gimnasio nuevo, ten&iacute;a que desplazarme f&iacute;sicamente, pedir una visita,
+          aguantar al comercial de turno intentando venderme ofertas que no necesitaba, y salir sin tener claro si realmente
+          val&iacute;a la pena. Muchas webs esconden los precios o te obligan a dejar tus datos para recibir una llamada.
+          <strong style="color:var(--color-charcoal);">Era agotador.</strong>
         </p>
 
         <p style="font-size:14px;font-weight:300;color:var(--color-mid-gray);margin-bottom:16px;">
-          Hablando con amigos y conocidos, me di cuenta de que <strong style="color:var(--color-charcoal);">no era el &uacute;nico.</strong>
-          Much&iacute;simas personas ten&iacute;an exactamente el mismo problema: quer&iacute;an un gimnasio pero no sab&iacute;an
-          por d&oacute;nde empezar a buscar. &iquest;Cu&aacute;l es el m&aacute;s barato? &iquest;Cu&aacute;l tiene piscina?
-          &iquest;Cu&aacute;l abre 24 horas? &iquest;Cu&aacute;l est&aacute; m&aacute;s cerca de mi casa?
+          Lleg&oacute; un punto en el que entrenar me parec&iacute;a aburrido. Mi forma de entretenerme era <strong style="color:var(--color-charcoal);">cambiar de gimnasio</strong>:
+          probar uno nuevo cada cierto tiempo, ver c&oacute;mo era el ambiente, si las m&aacute;quinas estaban bien cuidadas,
+          si las clases merec&iacute;an la pena. Para hacerlo sin arruinarme, combin&eacute; varios m&eacute;todos: comprar
+          <strong style="color:var(--color-charcoal);">suscripciones de un d&iacute;a</strong>, usar
+          <strong style="color:var(--color-charcoal);">ClassPass</strong>, aprovechar los
+          <strong style="color:var(--color-charcoal);">d&iacute;as de prueba gratuitos</strong>, y a veces apuntarme
+          directamente al gimnasio durante una temporada.
         </p>
 
         <p style="font-size:14px;font-weight:300;color:var(--color-mid-gray);margin-bottom:16px;">
           As&iacute; naci&oacute; <strong style="color:var(--color-charcoal);">GymCat</strong>. Un comparador de gimnasios que
           te muestra <strong style="color:var(--color-charcoal);">toda la verdad</strong>: precios reales con matr&iacute;cula
-          incluida, mantenimiento anual, coste total del primer a&ntilde;o, instalaciones verificadas, y un resumen de
+          incluida, mantenimiento anual, permanencia, instalaciones verificadas, y un resumen de
           lo que dice la gente en Google Maps.
         </p>
 
         <p style="font-size:14px;font-weight:300;color:var(--color-mid-gray);margin-bottom:0;">
-          Nuestro objetivo es simple: que <strong style="color:var(--color-charcoal);">nunca m&aacute;s pierdas horas
-          comparando gimnasios</strong>. Entra, busca, filtra, y en 2 minutos sabr&aacute;s cu&aacute;l es el mejor para ti.
+          Nuestro objetivo es simple: que <strong style="color:var(--color-charcoal);">no tengas que ir al gimnasio para saber si es bueno</strong>.
+          Entra, busca, filtra y en 2 minutos sabr&aacute;s cu&aacute;l es el mejor para ti, sin llamadas, sin presiones, sin perder el tiempo.
         </p>
       </div>
     </div>

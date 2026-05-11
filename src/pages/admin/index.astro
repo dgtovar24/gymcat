@@ -69,6 +69,8 @@ if (Astro.request.method === "POST") {
       const dp = formData.get("daily_price")?.toString();
       const pp = formData.get("price_period")?.toString();
       const pv = formData.get("price_is_verified")?.toString();
+      const hp = formData.get("has_permanencia")?.toString();
+      const pm = formData.get("permanencia_months")?.toString();
       if (ml) updates.monthlyPriceLow = ml;
       if (mf) updates.matriculaFee = mf;
       if (af) updates.annualMaintenanceFee = af;
@@ -80,6 +82,8 @@ if (Astro.request.method === "POST") {
       if (dp !== undefined) updates.dailyPrice = dp || null;
       if (pp !== undefined) updates.pricePeriod = pp || "monthly";
       updates.priceIsVerified = pv === "true";
+      updates.hasPermanencia = hp === "true";
+      if (pm !== undefined) updates.permanenciaMonths = pm ? parseInt(pm) : null;
       await db.update(gyms).set(updates).where(eq(gyms.id, gymId));
 
       // Facilities
@@ -120,6 +124,8 @@ const gymData = allGyms.map(g => ({
   price_is_verified: g.priceIsVerified,
   daily_price: g.dailyPrice ? Number(g.dailyPrice) : null,
   price_period: g.pricePeriod || "monthly",
+  has_permanencia: g.hasPermanencia,
+  permanencia_months: g.permanenciaMonths,
   google_place_id: g.googlePlaceId || "", is_open_247: g.isOpen247, chain_id: g.chainId, city_id: g.cityId,
 }));
 
@@ -308,6 +314,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
           <div class="fr"><div class="fg"><label>Precio mensual (&euro;/mes)</label><input type="number" step="0.01" name="monthly_price_low" id="eml" placeholder="Ej: 29.99" class="ai-field"></div><div class="fg"><label>Matr&iacute;cula (&euro;)</label><input type="number" step="0.01" name="matricula_fee" id="emf" placeholder="Pago &uacute;nico" class="ai-field"></div></div>
           <div class="fr"><div class="fg"><label>Mantenimiento anual (&euro;)</label><input type="number" step="0.01" name="annual_maintenance_fee" id="emaf" placeholder="Ej: 25" class="ai-field"></div><div class="fg"><label>Precio por d&iacute;a (&euro;)</label><input type="number" step="0.01" name="daily_price" id="edaily" placeholder="Ej: 9.99" class="ai-field"></div></div>
           <div class="fr"><div class="fg"><label>Periodo de pago</label><select name="price_period" id="eperiod"><option value="monthly">Mensual</option><option value="yearly">Anual</option><option value="daily">Diario</option></select><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="price_is_verified" id="epriceok" value="true" style="width:auto;">He pagado este precio</label></div></div>
+          <div class="fr"><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="has_permanencia" id="ehasperm" value="true" style="width:auto;">Permanencia</label></div><div class="fg"><label>Meses de permanencia</label><input type="number" name="permanencia_months" id="epermonths" placeholder="Ej: 12" style="width:100%;"></div></div>
           <div class="fr"><div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_open_247" id="e247" value="true" style="width:auto;" class="ai-field">Abierto 24h</label></div><div class="fg"><label>Tel&eacute;fono</label><input type="text" name="phone" id="eph" class="ai-field"></div></div>
           <div class="fg"><label>Instalaciones</label><div class="fac-grid" id="fc"></div></div>
         </div>
@@ -395,6 +402,8 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       document.getElementById('edaily').value = '';
       document.getElementById('eperiod').value = 'monthly';
       document.getElementById('epriceok').checked = false;
+      document.getElementById('ehasperm').checked = false;
+      document.getElementById('epermonths').value = '';
       document.getElementById('ai-pros').value = '';
       document.getElementById('ai-cons').value = '';
       document.getElementById('eip').style.display = 'none';
@@ -428,6 +437,8 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       document.getElementById('edaily').value = g.daily_price || '';
       document.getElementById('eperiod').value = g.price_period || 'monthly';
       document.getElementById('epriceok').checked = g.price_is_verified || false;
+      document.getElementById('ehasperm').checked = g.has_permanencia || false;
+      document.getElementById('epermonths').value = g.permanencia_months || '';
       const p = document.getElementById('eip');
       if (g.image_url) { p.src = g.image_url; p.style.display = 'block'; } else { p.style.display = 'none'; }
       document.getElementById('modalTitle').textContent = 'Editar: ' + g.name;

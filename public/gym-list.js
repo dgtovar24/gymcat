@@ -15,6 +15,7 @@
   var selectedFacs = [];
   var searchText = '';
   var show24h = false;
+  var noPermanencia = false;
   var sortBy = 'relevance';
   var maxPrice = null;
   var selectedProvince = '';
@@ -38,6 +39,7 @@
     if (p.get('fac')) selectedFacs = p.get('fac').split(',').filter(Boolean);
     if (p.get('q')) { searchText = p.get('q'); document.getElementById('search-input').value = searchText; }
     if (p.get('24h') === '1') { show24h = true; document.getElementById('filter-24h').checked = true; }
+    if (p.get('perm') === '1') { noPermanencia = true; document.getElementById('filter-perm').checked = true; }
     if (p.get('sort')) { sortBy = p.get('sort'); document.getElementById('sort-select').value = sortBy; }
     if (p.get('max')) maxPrice = parseFloat(p.get('max'));
     if (p.get('city')) {
@@ -76,6 +78,11 @@
     // 24h filter
     if (show24h) {
       results = results.filter(function(g) { return g.is24h; });
+    }
+
+    // Permanencia filter
+    if (noPermanencia) {
+      results = results.filter(function(g) { return !g.hasPermanencia; });
     }
 
     // Price filter
@@ -146,6 +153,8 @@
     var addressHTML = g.address ? '<p style="font-size:13px;color:var(--color-mid-gray);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:2px;"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.4 8 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8z"/></svg> ' + esc(g.address) + '</p>' : '';
     var badges = [];
     if (g.isVerified) badges.push('<span style="font-size:10px;font-weight:500;padding:2px 6px;border-radius:var(--radius-pill);background:#3b82f6;color:white;cursor:help;" title="Verificado por GymCat: hemos visitado este gimnasio personalmente">&#10003; Verificado</span>');
+    if (!g.hasPermanencia) badges.push('<span style="font-size:10px;font-weight:500;color:#22c55e;padding:2px 6px;border-radius:var(--radius-pill);background:rgba(34,197,94,0.1);">Sin permanencia</span>');
+    if (g.hasPermanencia && g.permanenciaMonths) badges.push('<span style="font-size:10px;font-weight:500;padding:2px 6px;border-radius:var(--radius-pill);background:#fef3c7;color:#92400e;">' + g.permanenciaMonths + ' meses perm.</span>');
     if (g.is24h) badges.push('<span style="font-size:10px;font-weight:500;padding:2px 6px;border-radius:var(--radius-pill);background:var(--color-off-white);">24h</span>');
     if (g.matricula === 0) badges.push('<span style="font-size:10px;font-weight:500;color:#22c55e;padding:2px 6px;border-radius:var(--radius-pill);background:rgba(34,197,94,0.1);">Sin matr&iacute;cula</span>');
 
@@ -219,6 +228,11 @@
 
   document.getElementById('filter-24h').addEventListener('change', function() {
     show24h = this.checked;
+    filter();
+  });
+
+  document.getElementById('filter-perm').addEventListener('change', function() {
+    noPermanencia = this.checked;
     filter();
   });
 

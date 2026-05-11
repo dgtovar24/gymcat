@@ -194,6 +194,10 @@ export const gyms = pgTable(
     dailyPrice: decimal("daily_price", { precision: 10, scale: 2 }),
     pricePeriod: varchar("price_period", { length: 20 }).default("monthly"), // monthly, yearly, daily
 
+    // Commitment
+    hasPermanencia: boolean("has_permanencia").default(false),
+    permanenciaMonths: integer("permanencia_months"),
+
     // Operations
     isOpen247: boolean("is_open_247").default(false),
     openingHours: jsonb("opening_hours"),

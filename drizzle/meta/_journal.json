@@ -64,6 +64,13 @@
       "when": 1778454991775,
       "tag": "0008_pretty_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1778463172969,
+      "tag": "0009_secret_moira_mactaggert",
+      "breakpoints": true
     }
   ]
 }

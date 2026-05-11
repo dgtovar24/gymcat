@@ -49,6 +49,7 @@ const gymsJSON = JSON.stringify(allGyms.map(g => ({
   matricula: g.matriculaFee ? Number(g.matriculaFee) : null,
   is24h: g.isOpen247, image: g.imageUrl,
   isVerified: g.isVerified, verifiedReview: g.verifiedReview,
+  hasPermanencia: g.hasPermanencia, permanenciaMonths: g.permanenciaMonths,
   chain: g.chainId ? chainMap.get(g.chainId)?.name || null : null,
   facilities: gymFacMap.get(g.id) || [],
 })));
@@ -124,6 +125,9 @@ const facSVGsJSON = JSON.stringify(facSVGs);
 
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:9px 12px;border:1px solid rgba(34,42,53,0.15);border-radius:var(--radius-8);cursor:pointer;background:white;white-space:nowrap;">
           <input type="checkbox" id="filter-24h" style="width:auto;" /> 24h
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:9px 12px;border:1px solid rgba(34,42,53,0.15);border-radius:var(--radius-8);cursor:pointer;background:white;white-space:nowrap;">
+          <input type="checkbox" id="filter-perm" style="width:auto;" /> Sin permanencia
         </label>
       </div>
 
