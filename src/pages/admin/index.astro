@@ -320,7 +320,7 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
         </div>
 
         <div class="fg"><label>Descripci&oacute;n</label><textarea name="description" id="ed"></textarea></div>
-        <div class="fr"><div class="fg"><label>Imagen URL</label><input type="text" name="image_url" id="eiu" placeholder="/uploads/gym-1.jpg"><img id="eip" class="ip" src="" style="display:none;"></div><div class="fg"><label>Cadena</label><select name="chain_id" id="echain"><option value="">Sin cadena</option>{chainsList.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}</select></div></div>
+        <div class="fr"><div class="fg"><label>Imagen URL</label><input type="text" name="image_url" id="eiu" placeholder="/uploads/gym-1.jpg"><img id="eip" class="ip" src="" style="display:none;"></div><div class="fg"><label>Cadena</label><select name="chain_id" id="echain"><option value="">Sin cadena</option>{chainsList.map(c => <option value={c.id}>{c.name}</option>)}</select></div></div>
         <div class="fr"><div class="fg"><label>Web principal</label><input type="text" name="website" id="ew" placeholder="https://..."></div><div class="fg"><label>Estado</label><select name="status" id="est"><option value="active">Activo</option><option value="inactive">Inactivo</option><option value="pending_review">Pendiente</option><option value="closed">Cerrado</option><option value="archived">Archivado</option></select></div></div>
         <div class="fr">
           <div class="fg" style="display:flex;align-items:flex-end;padding-bottom:8px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" name="is_verified" id="everified" value="true" style="width:auto;">Verificado</label></div>
