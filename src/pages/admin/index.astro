@@ -298,9 +298,13 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
         </div>
 
         <div id="pdf-status" style="display:none;margin-bottom:12px;padding:8px 14px;border-radius:6px;font-size:13px;"></div>
-        <button type="button" onclick="generateWithAI()" style="width:100%;padding:12px;background:#242424;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <button type="button" onclick="generateWithAI()" style="width:100%;padding:12px;background:#242424;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Generar con IA
+          Generar con IA (todo)
+        </button>
+        <button type="button" onclick="generateReviewsOnly()" style="width:100%;padding:10px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+          Generar solo rese&ntilde;as
         </button>
       </div>
 
@@ -486,6 +490,49 @@ const facilitiesList = allFacilities.map(f => ({ id: f.id, name: f.name, slug: f
       document.getElementById('pdf-status').style.color = '#555';
       document.getElementById('pdf-status').textContent = 'PDF cargado. Pulsa "Generar con IA"';
     }
+
+    window.generateReviewsOnly = async function() {
+      var status = document.getElementById('pdf-status');
+      status.style.display = 'block';
+      status.style.background = '#eff6ff';
+      status.style.color = '#1e40af';
+      status.textContent = 'Obteniendo rese\u00f1as con IA...';
+      dropZone.classList.add('loading');
+
+      var fd = new FormData();
+      fd.append('gym_name', document.getElementById('en').value);
+      fd.append('gym_address', document.getElementById('ea').value);
+      fd.append('place_id', document.getElementById('egpid').value);
+      fd.append('website_url', document.getElementById('ew').value);
+      fd.append('reviews_only', 'true');
+
+      try {
+        var res = await fetch('/api/admin/generate', { method: 'POST', body: fd });
+        var data = await res.json();
+        if (data.success && data.data) {
+          var d = data.data;
+          if (d.ai_summary_pros && d.ai_summary_pros.length) {
+            document.getElementById('ai-pros').value = d.ai_summary_pros.join('|||');
+          }
+          if (d.ai_summary_cons && d.ai_summary_cons.length) {
+            document.getElementById('ai-cons').value = d.ai_summary_cons.join('|||');
+          }
+          var filled = data.filledFields || [];
+          status.style.background = filled.length ? '#dcfce7' : '#fef3c7';
+          status.style.color = filled.length ? '#166534' : '#92400e';
+          status.textContent = filled.length
+            ? 'Rese\u00f1as generadas: ' + filled.join(', ')
+            : 'No se encontraron rese\u00f1as';
+        } else {
+          status.style.background = '#fee2e2'; status.style.color = '#991b1b';
+          status.textContent = 'Error: ' + (data.error || 'No se pudo procesar');
+        }
+      } catch(e) {
+        status.style.background = '#fee2e2'; status.style.color = '#991b1b';
+        status.textContent = 'Error de conexi\u00f3n';
+      }
+      dropZone.classList.remove('loading');
+    };
 
     window.generateWithAI = async function() {
       var status = document.getElementById('pdf-status');

@@ -27,6 +27,8 @@ export async function POST({ request }: { request: Request }) {
     const gmapsKey = getS("google_maps_api_key") || env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "AIzaSyC10drvzhIUxn0bkqg3YQGNhQ0y8Y-EJY4";
     const placeId = placeIdFromForm || getS("google_place_id") || "";
 
+    const reviewsOnly = formData.get("reviews_only")?.toString() === "true";
+
     const apiKey = env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || "sk-a0b83ddd895447f0b57820db91a5e9e3";
     if (!apiKey) {
       return json({ error: "DeepSeek API key not configured" }, 500);
@@ -123,7 +125,17 @@ export async function POST({ request }: { request: Request }) {
     if (webText) sources.push("web del gimnasio");
     if (reviewText) sources.push("reseñas de Google Maps");
 
-    const systemPrompt = `Eres un extractor de datos para GymCat. Analiza TODA la información disponible y extrae TODOS los datos que puedas encontrar. NO devuelvas campos vacíos si encuentras información — rellena TODO lo que detectes.
+    let systemPrompt: string;
+    if (reviewsOnly) {
+      systemPrompt = `Eres un extractor de reseñas para GymCat. Analiza SOLO las reseñas y extrae pros y contras.
+
+SOLO EXTRAE:
+- "ai_summary_pros": array de 3-5 aspectos positivos
+- "ai_summary_cons": array de 3-5 aspectos negativos
+
+NO rellenes otros campos. Responde SOLO JSON.`;
+    } else {
+      systemPrompt = `Eres un extractor de datos para GymCat. Analiza TODA la información disponible y extrae TODOS los datos que puedas encontrar. NO devuelvas campos vacíos si encuentras información — rellena TODO lo que detectes.
 
 DATOS A EXTRAER (rellena todos los que encuentres):
 - "name": nombre completo del gimnasio
