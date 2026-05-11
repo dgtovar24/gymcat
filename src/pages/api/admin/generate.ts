@@ -21,7 +21,7 @@ export async function POST({ request }: { request: Request }) {
     const allSettings = await db.select().from(settings);
     const getS = (key: string) => allSettings.find(s => s.key === key)?.value || "";
 
-    const aiModel = getS("ai_model") || "deepseek-chat";
+    const aiModel = "deepseek-chat"; // Force V3 model — V4 pro doesn't support JSON mode properly
     // Read env vars (Astro API routes need import.meta.env)
     const env = typeof import.meta !== 'undefined' ? (import.meta as any).env : {};
     const gmapsKey = getS("google_maps_api_key") || env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "AIzaSyC10drvzhIUxn0bkqg3YQGNhQ0y8Y-EJY4";
