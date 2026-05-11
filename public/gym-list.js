@@ -149,7 +149,7 @@
     if (g.is24h) badges.push('<span style="font-size:10px;font-weight:500;padding:2px 6px;border-radius:var(--radius-pill);background:var(--color-off-white);">24h</span>');
     if (g.matricula === 0) badges.push('<span style="font-size:10px;font-weight:500;color:#22c55e;padding:2px 6px;border-radius:var(--radius-pill);background:rgba(34,197,94,0.1);">Sin matr&iacute;cula</span>');
 
-    return '<a href="/gimnasios/' + g.slug + '" class="card" style="display:block;text-decoration:none;color:inherit;transition:box-shadow 0.15s;">' +
+    return '<a href="/gimnasios/' + g.slug + '" class="card" style="display:block;text-decoration:none;color:inherit;transition:box-shadow 0.15s;min-width:0;overflow:hidden;">' +
       imageHTML + chainBadge +
       '<h3 style="font-size:17px;margin-bottom:4px;">' + esc(g.name) + '</h3>' +
       addressHTML +
