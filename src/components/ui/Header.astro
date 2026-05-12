@@ -16,23 +16,53 @@ const navItems = [
       <img src="/GymCatLogo.png" alt="GymCat" style="height:52px;width:auto;" />
       <span style="font-family:var(--font-display);font-weight:600;font-size:18px;">GYMCAT</span>
     </a>
+    <!-- Desktop nav -->
     <div class="hide-mobile" style="display:flex;align-items:center;gap:20px;">
-      {navItems.map((item) => (<a href={item.href} class="nav-link" style={`font-size:13px;font-weight:500;color:${currentPath.startsWith(item.href)?'var(--color-charcoal)':'var(--color-mid-gray)'}`} set:html={item.label} />))}
+      {navItems.map((item) => (<a href={item.href} style={`font-size:13px;font-weight:500;color:${currentPath.startsWith(item.href)?'var(--color-charcoal)':'var(--color-mid-gray)'};text-decoration:none;`} set:html={item.label} />))}
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <a href="/gimnasios" class="btn-primary" style="font-size:13px;padding:7px 16px;text-decoration:none;">Buscar</a>
-      <button class="show-mobile" onclick="document.getElementById('mobile-menu').classList.toggle('active')" style="background:none;border:none;font-size:22px;cursor:pointer;padding:4px 8px;color:var(--color-charcoal);" aria-label="Menú">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <a href="/gimnasios" class="hide-mobile btn-primary" style="font-size:13px;padding:7px 16px;text-decoration:none;">Buscar</a>
+      <!-- Mobile hamburger -->
+      <button class="show-mobile" id="menu-toggle" onclick="toggleMenu()" style="background:none;border:none;font-size:22px;cursor:pointer;padding:4px 8px;color:var(--color-charcoal);" aria-label="Menú">
+        <svg id="menu-icon-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <svg id="menu-icon-close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
   </nav>
-  <div id="mobile-menu" class="show-mobile" style="display:none;background:var(--color-white);border-top:1px solid rgba(34,42,53,0.08);padding:8px 0;">
-    {navItems.map((item) => (<a href={item.href} style="display:block;padding:12px 16px;font-size:15px;color:var(--color-charcoal);text-decoration:none;border-bottom:1px solid rgba(34,42,53,0.04);" set:html={item.label} />))}
+
+  <!-- Mobile dropdown -->
+  <div id="mobile-menu" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--color-white);border-top:1px solid rgba(34,42,53,0.08);border-bottom:1px solid rgba(34,42,53,0.08);box-shadow:0 20px 40px rgba(0,0,0,0.15);z-index:100;padding:8px 0;">
+    {navItems.map((item) => (<a href={item.href} onclick="closeMenu()" style="display:block;padding:14px 24px;font-size:16px;font-weight:500;color:var(--color-charcoal);text-decoration:none;border-bottom:1px solid rgba(34,42,53,0.04);">{item.label}</a>))}
+    <a href="/gimnasios" onclick="closeMenu()" style="display:block;margin:8px 24px;padding:12px;background:var(--color-charcoal);color:white;text-align:center;border-radius:var(--radius-8);text-decoration:none;font-size:15px;font-weight:600;">Buscar gimnasios</a>
   </div>
 </header>
 
 <style>
   .show-mobile { display: none; }
-  @media (max-width: 639px) { .show-mobile { display: block; } }
-  #mobile-menu.active { display: block !important; }
+  @media (max-width: 639px) {
+    .show-mobile { display: block; }
+    .hide-mobile { display: none !important; }
+  }
 </style>
+
+<script is:inline>
+  function toggleMenu() {
+    var menu = document.getElementById('mobile-menu');
+    var openIcon = document.getElementById('menu-icon-open');
+    var closeIcon = document.getElementById('menu-icon-close');
+    if (menu.style.display === 'block') {
+      menu.style.display = 'none';
+      openIcon.style.display = '';
+      closeIcon.style.display = 'none';
+    } else {
+      menu.style.display = 'block';
+      openIcon.style.display = 'none';
+      closeIcon.style.display = '';
+    }
+  }
+  function closeMenu() {
+    document.getElementById('mobile-menu').style.display = 'none';
+    document.getElementById('menu-icon-open').style.display = '';
+    document.getElementById('menu-icon-close').style.display = 'none';
+  }
+</script>
