@@ -4,6 +4,9 @@ import vercel from "@astrojs/vercel";
 
 export default defineConfig({
   output: "server",
+  security: {
+    checkOrigin: false,
+  },
   adapter: vercel({
     imageService: true,
   }),
