@@ -20,7 +20,6 @@ const navItems = [
       {navItems.map((item) => (<a href={item.href} class="nav-link" style={`font-size:13px;font-weight:500;color:${currentPath.startsWith(item.href)?'var(--color-charcoal)':'var(--color-mid-gray)'}`} set:html={item.label} />))}
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <a href="/admin" class="hide-mobile nav-link" style="font-size:12px;color:var(--color-mid-gray);">Admin</a>
       <a href="/gimnasios" class="btn-primary" style="font-size:13px;padding:7px 16px;text-decoration:none;">Buscar</a>
       <button class="show-mobile" onclick="document.getElementById('mobile-menu').classList.toggle('active')" style="background:none;border:none;font-size:22px;cursor:pointer;padding:4px 8px;color:var(--color-charcoal);" aria-label="Menú">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -29,7 +28,6 @@ const navItems = [
   </nav>
   <div id="mobile-menu" class="show-mobile" style="display:none;background:var(--color-white);border-top:1px solid rgba(34,42,53,0.08);padding:8px 0;">
     {navItems.map((item) => (<a href={item.href} style="display:block;padding:12px 16px;font-size:15px;color:var(--color-charcoal);text-decoration:none;border-bottom:1px solid rgba(34,42,53,0.04);" set:html={item.label} />))}
-    <a href="/admin" style="display:block;padding:12px 16px;font-size:15px;color:var(--color-mid-gray);text-decoration:none;">Admin</a>
   </div>
 </header>
 

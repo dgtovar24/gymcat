@@ -63,6 +63,9 @@
   }
 
   function filter() {
+    if (window._track) {
+      window._track('search', null, {facilities: selectedFacs, search: searchText, province: selectedProvince, maxPrice: maxPrice});
+    }
     var results = gyms.slice();
 
     // Text search

@@ -397,6 +397,28 @@ export const alerts = pgTable(
   ],
 );
 
+/** Analytics events — page views, gym views, searches, clicks */
+export const analyticsEvents = pgTable(
+  "analytics_events",
+  {
+    id: serial("id").primaryKey(),
+    eventType: varchar("event_type", { length: 50 }).notNull(),
+    gymId: integer("gym_id").references(() => gyms.id, { onDelete: "set null" }),
+    page: varchar("page", { length: 300 }),
+    sessionId: varchar("session_id", { length: 64 }),
+    ipHash: varchar("ip_hash", { length: 64 }),
+    userAgent: text("user_agent"),
+    referrer: text("referrer"),
+    meta: jsonb("meta"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("ae_type_idx").on(table.eventType),
+    index("ae_gym_idx").on(table.gymId),
+    index("ae_created_idx").on(table.createdAt),
+  ],
+);
+
 // ==========================================================================
 // Type exports
 // ==========================================================================

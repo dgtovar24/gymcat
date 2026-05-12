@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analytics — Gymcat Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #242424; }
+    .ah { background: #242424; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .ah h1 { font-size: 18px; } .ah a { color: #aaa; text-decoration: none; font-size: 14px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; }
+    .num { font-size: 32px; font-weight: 600; }
+    .label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+    .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .bar { height: 8px; border-radius: 4px; background: #242424; margin-top: 4px; }
+    .loading { text-align: center; color: #888; padding: 40px; }
+    select, button { padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header class="ah">
+    <h1>Gymcat Analytics</h1>
+    <div style="display:flex;gap:16px;">
+      <a href="/admin">Gimnasios</a>
+      <a href="/admin/settings">Ajustes</a>
+      <a href="/admin/logout">Cerrar sesi&oacute;n</a>
+    </div>
+  </header>
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h2 style="font-size:20px;">Anal&iacute;ticas</h2>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="period-select" onchange="loadData()">
+          <option value="7">7 d&iacute;as</option>
+          <option value="30" selected>30 d&iacute;as</option>
+          <option value="90">90 d&iacute;as</option>
+        </select>
+        <button onclick="loadData()">Actualizar</button>
+      </div>
+    </div>
+
+    <div id="content" class="loading">Cargando...</div>
+  </div>
+
+  <script is:inline>
+    async function loadData() {
+      var days = document.getElementById('period-select').value;
+      try {
+        var res = await fetch('/api/admin/analytics?days=' + days);
+        var d = await res.json();
+        if (d.error) { document.getElementById('content').innerHTML = '<p style="color:#ef4444;">Error: ' + d.error + '</p>'; return; }
+
+        var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px;">';
+        html += '<div class="card"><div class="num">' + (d.landingViews || 0) + '</div><div class="label">Landing views</div></div>';
+        html += '<div class="card"><div class="num">' + (d.searches || 0) + '</div><div class="label">B&uacute;squedas</div></div>';
+        html += '<div class="card"><div class="num">' + (d.websiteClicks || 0) + '</div><div class="label">Clicks a webs</div></div>';
+        html += '<div class="card"><div class="num">' + (d.uniqueVisitors || 0) + '</div><div class="label">Visitantes &uacute;nicos</div></div>';
+        html += '<div class="card"><div class="num">' + (d.pageViews || 0) + '</div><div class="label">Page views totales</div></div>';
+        html += '</div>';
+
+        html += '<div class="card"><h3 style="margin-bottom:12px;">Gimnasios m&aacute;s vistos (' + d.period + ')</h3>';
+        if (d.gymViews && d.gymViews.length) {
+          var max = d.gymViews[0].views;
+          d.gymViews.forEach(function(g) {
+            html += '<div class="row"><div>' + esc(g.name) + '</div><div style="color:#888;">' + g.views + ' vistas<div class="bar" style="width:' + (g.views / max * 100) + '%;"></div></div></div>';
+          });
+        } else {
+          html += '<p style="color:#888;">Sin datos a&uacute;n</p>';
+        }
+        html += '</div>';
+
+        document.getElementById('content').innerHTML = html;
+      } catch(e) {
+        document.getElementById('content').innerHTML = '<p style="color:#ef4444;">Error de conexi&oacute;n</p>';
+      }
+    }
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    loadData();
+  </script>
+</body>
+</html>

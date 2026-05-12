@@ -221,8 +221,28 @@ function facIcon(icon: string | null) {
     </section>
   )}
 
+  {images.length <= 1 && (
+    <script is:inline define:vars={{ gymId: gym.id }}>
+      if (window._track) {
+        window._track('gym_view', gymId);
+        document.querySelectorAll('a[href^="http"]').forEach(function(a) {
+          a.addEventListener('click', function() {
+            window._track('website_click', gymId, {url: a.href});
+          });
+        });
+      }
+    </script>
+  )}
+
   {images.length > 1 && (
-    <script is:inline define:vars={{ images: images.map(i => i.imageUrl) }}>
+    <script is:inline define:vars={{ images: images.map(i => i.imageUrl), gymId: gym.id }}>
+      // Track gym view
+      if (window._track) window._track('gym_view', gymId);
+      document.querySelectorAll('a[href^="http"]').forEach(function(a) {
+        a.addEventListener('click', function() {
+          if (window._track) window._track('website_click', gymId, {url: a.href});
+        });
+      });
       const galleryImages = images; let currentIdx = 0;
       window._galleryNav = function(dir) { currentIdx = (currentIdx + dir + galleryImages.length) % galleryImages.length; updateGallery(); };
       window._galleryGo = function(idx) { currentIdx = idx; updateGallery(); };
