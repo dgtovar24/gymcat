@@ -58,8 +58,8 @@ export async function POST({ request }: { request: Request }) {
       try {
         let html = "";
         if (scrapingBeeKey) {
-          const sbUrl = `https://app.scrapingbee.com/api/v1/?api_key=${scrapingBeeKey}&url=${encodeURIComponent(url.trim())}&render_js=true&wait=3000&premium_proxy=true&country_code=es`;
-          const sbRes = await fetch(sbUrl, { signal: AbortSignal.timeout(20000) });
+          const sbUrl = `https://app.scrapingbee.com/api/v1/?api_key=${scrapingBeeKey}&url=${encodeURIComponent(url.trim())}&render_js=true&wait=1500&premium_proxy=true&country_code=es`;
+          const sbRes = await fetch(sbUrl, { signal: AbortSignal.timeout(8000) });
           html = await sbRes.text();
         } else {
           const webRes = await fetch(url.trim(), {
