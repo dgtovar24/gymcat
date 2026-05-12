@@ -2,7 +2,6 @@
   "buildCommand": "npm run build:vercel",
   "outputDirectory": "dist",
   "framework": "astro",
-  "maxDuration": 30,
   "env": {
     "DEEPSEEK_API_KEY": "sk-a0b83ddd895447f0b57820db91a5e9e3",
     "GOOGLE_MAPS_API_KEY": "AIzaSyC10drvzhIUxn0bkqg3YQGNhQ0y8Y-EJY4",
