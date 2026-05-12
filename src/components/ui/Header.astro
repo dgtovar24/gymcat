@@ -31,7 +31,7 @@ const navItems = [
   </nav>
 
   <!-- Mobile dropdown -->
-  <div id="mobile-menu" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--color-white);border-top:1px solid rgba(34,42,53,0.08);border-bottom:1px solid rgba(34,42,53,0.08);box-shadow:0 20px 40px rgba(0,0,0,0.15);z-index:100;padding:8px 0;">
+  <div id="mobile-menu" style="display:block;position:absolute;top:100%;left:0;right:0;background:var(--color-white);border-top:1px solid rgba(34,42,53,0.08);border-bottom:1px solid rgba(34,42,53,0.08);box-shadow:0 20px 40px rgba(0,0,0,0.15);z-index:9999;padding:8px 0;transform:translateY(-10px);opacity:0;pointer-events:none;transition:transform 0.2s ease,opacity 0.2s ease;">
     {navItems.map((item) => (<a href={item.href} onclick="closeMenu()" style="display:block;padding:14px 24px;font-size:16px;font-weight:500;color:var(--color-charcoal);text-decoration:none;border-bottom:1px solid rgba(34,42,53,0.04);">{item.label}</a>))}
     <a href="/gimnasios" onclick="closeMenu()" style="display:block;margin:8px 24px;padding:12px;background:var(--color-charcoal);color:white;text-align:center;border-radius:var(--radius-8);text-decoration:none;font-size:15px;font-weight:600;">Buscar gimnasios</a>
   </div>
@@ -50,18 +50,26 @@ const navItems = [
     var menu = document.getElementById('mobile-menu');
     var openIcon = document.getElementById('menu-icon-open');
     var closeIcon = document.getElementById('menu-icon-close');
-    if (menu.style.display === 'block') {
-      menu.style.display = 'none';
+    var isOpen = menu.style.transform === 'translateY(0px)';
+    if (isOpen) {
+      menu.style.transform = 'translateY(-10px)';
+      menu.style.opacity = '0';
+      menu.style.pointerEvents = 'none';
       openIcon.style.display = '';
       closeIcon.style.display = 'none';
     } else {
-      menu.style.display = 'block';
+      menu.style.transform = 'translateY(0)';
+      menu.style.opacity = '1';
+      menu.style.pointerEvents = 'auto';
       openIcon.style.display = 'none';
       closeIcon.style.display = '';
     }
   }
   function closeMenu() {
-    document.getElementById('mobile-menu').style.display = 'none';
+    var menu = document.getElementById('mobile-menu');
+    menu.style.transform = 'translateY(-10px)';
+    menu.style.opacity = '0';
+    menu.style.pointerEvents = 'none';
     document.getElementById('menu-icon-open').style.display = '';
     document.getElementById('menu-icon-close').style.display = 'none';
   }
