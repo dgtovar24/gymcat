@@ -154,6 +154,7 @@ DATOS A EXTRAER (rellena todos los que encuentres):
 IMPORTANTE: Busca precios en formatos españoles (29,99€). Busca instalaciones mencionadas en el texto. Busca horarios y teléfonos. Rellena la descripción SIEMPRE que haya texto.
 
 Responde SOLO JSON válido.`;
+    }
 
     const userContent = [
       pdfText ? `CONTENIDO DEL PDF:\n${pdfText.slice(0, 4000)}` : "",
