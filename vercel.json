@@ -1,5 +1,5 @@
 {
-  "buildCommand": "astro check && astro build",
+  "buildCommand": "npm run build:vercel",
   "outputDirectory": "dist",
   "framework": "astro",
   "env": {

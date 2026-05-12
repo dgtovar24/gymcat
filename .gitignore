@@ -34,3 +34,4 @@ pnpm-debug.log*
 
 # Scraper artifacts
 scripts/scrape/output/
+.vercel
