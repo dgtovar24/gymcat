@@ -1,0 +1,11 @@
+{
+  "buildCommand": "astro check && astro build",
+  "outputDirectory": "dist",
+  "framework": "astro",
+  "env": {
+    "DEEPSEEK_API_KEY": "sk-a0b83ddd895447f0b57820db91a5e9e3",
+    "GOOGLE_MAPS_API_KEY": "AIzaSyC10drvzhIUxn0bkqg3YQGNhQ0y8Y-EJY4",
+    "SCRAPINGBEE_API_KEY": "1K4RT21J5ZC6Y62EW2UAKEU26F9IHKAQK40TXSKHC7XSLZK5ZVGY91CXEOK7S6R9AIYN6DX18E3EWV0G",
+    "DATABASE_URL": "postgresql://gymcat:Ameri5202@45.90.237.112:5433/gymcat"
+  }
+}
