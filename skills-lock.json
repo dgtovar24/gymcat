@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "remotion": {
+      "source": "vercel-labs/json-render",
+      "sourceType": "github",
+      "skillPath": "skills/remotion/SKILL.md",
+      "computedHash": "f46005be6dd80893835d4dee5f75dc45b21f2486ad2af3f14f709267d18b1d47"
+    },
+    "remotion-best-practices": {
+      "source": "remotion-dev/skills",
+      "sourceType": "github",
+      "skillPath": "skills/remotion/SKILL.md",
+      "computedHash": "006f8413941b59eff54a7ce64851b8a2fb79e7a3a5f1a895e97a48f01482553d"
+    }
+  }
+}

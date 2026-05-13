@@ -7,10 +7,6 @@ const all = await db.select().from(settings);
 const getS = (key: string, def = "") => all.find(s => s.key === key)?.value || def;
 
 const emailTo = getS("contact_email_to", "tovard799@gmail.com");
-const emailHost = getS("smtp_host", "");
-const emailPort = getS("smtp_port", "587");
-const emailUser = getS("smtp_user", "");
-const emailPass = getS("smtp_pass", "");
 
 let message = "";
 let messageType = "";
@@ -29,18 +25,12 @@ if (Astro.request.method === "POST") {
     } else {
       const fullBody = `Nombre: ${name}\nEmail: ${email}\nAsunto: ${subject}\n\nMensaje:\n${body}`;
 
-      // Save to file (configurable SMTP via Resend/SendGrid in production)
-      const { writeFileSync, mkdirSync } = await import("node:fs");
-      const { join } = await import("node:path");
-      const dir = join(process.cwd(), "data");
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(join(dir, `contacto-${Date.now()}.txt`), fullBody);
-
       // Try Resend API if configured
       const resendKey = getS("resend_api_key", "");
+      let emailSent = false;
       if (resendKey) {
         try {
-          await fetch("https://api.resend.com/emails", {
+          const res = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -50,7 +40,17 @@ if (Astro.request.method === "POST") {
               text: fullBody,
             }),
           });
-        } catch { /* Silently continue — message already saved to file */ }
+          emailSent = res.ok;
+        } catch {}
+      }
+
+      // Fallback: save to /tmp (only writable dir on Vercel)
+      if (!emailSent) {
+        const { writeFileSync, mkdirSync } = await import("node:fs");
+        const { join } = await import("node:path");
+        const dir = join("/tmp", "gymcat-contact");
+        mkdirSync(dir, { recursive: true });
+        writeFileSync(join(dir, `contacto-${Date.now()}.txt`), fullBody);
       }
 
       message = "Mensaje enviado correctamente. Te responderemos pronto.";
