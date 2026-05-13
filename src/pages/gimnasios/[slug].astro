@@ -11,6 +11,7 @@ if (!slug) return Astro.redirect("/gimnasios");
 const gymResults = await db.select().from(gyms).where(eq(gyms.slug, slug)).limit(1);
 const gym = gymResults[0];
 if (!gym) return new Response("Gimnasio no encontrado", { status: 404 });
+if (gym.status !== "active") return Astro.redirect("/gimnasios");
 
 const gymPrices = await db.select().from(pricesHistory).where(eq(pricesHistory.gymId, gym.id)).orderBy(desc(pricesHistory.recordedAt)).limit(20);
 const gymFacilityRows = await db.select({ facility: facilities }).from(gymFacilities).innerJoin(facilities, eq(gymFacilities.facilityId, facilities.id)).where(eq(gymFacilities.gymId, gym.id));
