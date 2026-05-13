@@ -1,0 +1,121 @@
+# Flujos de Usuario — GymCat
+
+## Flujo principal: Buscar gimnasio
+
+```
+Usuario llega a gymcat.es
+         │
+         ▼
+┌─────────────────────┐
+│   Landing Page      │
+│  "Buscar gimnasios" │
+│  (barra búsqueda)   │
+└────────┬────────────┘
+         │ Escribe: "piscina barato Barcelona"
+         ▼
+┌─────────────────────┐
+│  POST /api/search   │──▶ DeepSeek
+│  "piscina barato.." │    ┌──────────────┐
+└────────┬────────────┘    │ maxPrice: 40  │
+         │                 │ fac: piscina  │
+         ▼                 │ city: BCN     │
+┌─────────────────────┐    └──────────────┘
+│  /gimnasios?        │
+│  max=40&fac=piscina │
+│  &city=Barcelona    │
+└────────┬────────────┘
+         │ Client-side JS filtra
+         ▼
+┌─────────────────────┐
+│  Grid de tarjetas   │
+│  (filtros laterales)│
+│  ┌───┐ ┌───┐ ┌───┐ │
+│  │ A │ │ B │ │ C │ │
+│  └───┘ └───┘ └───┘ │
+└────────┬────────────┘
+         │ Click en tarjeta
+         ▼
+┌─────────────────────┐
+│  Ficha del gimnasio │
+│  [slug].astro       │
+│  ├─ Galería fotos   │
+│  ├─ Precio/perm.    │
+│  ├─ Instalaciones   │
+│  ├─ Reseñas IA      │
+│  └─ Mapa ubicación  │
+└─────────────────────┘
+```
+
+## Flujo: Comparar gimnasios
+
+```
+/gimnasios → Click "Comparar" en tarjeta
+         │
+         ▼
+┌─────────────────────┐
+│  /comparar?g1=...   │
+│  Select A + Select B│
+└────────┬────────────┘
+         ▼
+┌─────────────────────┐
+│  Tabla comparativa  │
+│  Precio   │ 30€ 25€ │
+│  Matrícula│ 0€  0€  │
+│  24h      │ ✓   ✓   │
+│  Pesas    │ ✓   ✕   │
+│  Piscina  │ ✕   ✓   │
+│  ...27 facilities   │
+└─────────────────────┘
+```
+
+## Flujo: Admin — Crear gimnasio con IA
+
+```
+/admin/login → admin/admin123
+         │
+         ▼
+┌─────────────────────┐
+│  Tabla gimnasios    │
+│  "+ Nuevo gimnasio" │
+└────────┬────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│  Modal edición      │
+│  ┌─ SECCIÓN IA ───┐ │
+│  │ PDF (drop)     │ │
+│  │ Google Maps URL│ │
+│  │ Webs adicional │ │
+│  │ [Generar IA]   │ │
+│  └────────────────┘ │
+│  ┌─ DATOS GYM ───┐  │
+│  │ Nombre        │  │
+│  │ Precio        │  │
+│  │ Permanencia   │  │
+│  │ ...           │  │
+│  └────────────────┘ │
+│  [Guardar cambios]  │
+└─────────────────────┘
+```
+
+## Flujo: Admin — Analytics
+
+```
+/admin → Header: "Analytics" (link implícito)
+         │
+         ▼
+┌─────────────────────────┐
+│  /admin/analytics       │
+│  ┌─────────────────────┐│
+│  │ Landing:     120    ││
+│  │ Búsquedas:   85     ││
+│  │ Clicks webs: 42     ││
+│  │ Visitantes:  67     ││
+│  └─────────────────────┘│
+│  Top gimnasios vistos:  │
+│  DiR Tuset      ████ 34 │
+│  VivaGym Sants  ███  28 │
+│  ...                    │
+│  [7d|30d|90d]           │
+└─────────────────────────┘
+```

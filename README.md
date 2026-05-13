@@ -1,61 +1,79 @@
-# Gymcat
+# GymCat 🐱
 
-Comparador inteligente de gimnasios en Cataluña. Precios reales, datos actualizados, sin letra pequeña.
+> Comparador de gimnasios en Cataluña. Precios reales, instalaciones verificadas, reseñas analizadas por IA.
 
-## 🚀 Quick Start
+**[gymcat.es](https://gymcat.es)**
+
+---
+
+## ¿Qué es GymCat?
+
+Un comparador de gimnasios que muestra **toda la verdad**: precios con matrícula, permanencia, coste total, instalaciones verificadas, y resumen de reseñas de Google Maps generado por IA. Para que no tengas que ir al gimnasio para saber si es bueno.
+
+## Características
+
+- 🔍 **Búsqueda con lenguaje natural**: "piscina barato Barcelona" → filtros automáticos
+- 📊 **Comparador A/B**: tabla cara a cara con las 27 instalaciones
+- 🗺️ **Mapa Google Maps**: todos los gimnasios geolocalizados
+- 🤖 **Panel admin con IA**: genera fichas completas desde PDF, web o Google Maps
+- 📈 **Analytics**: tracking de visitas, búsquedas y clicks
+- 🏷️ **Precio verificado**: badge cuando el precio lo pagó el fundador personalmente
+- 📱 **Mobile-first**: responsive, menú desplegable con animación
+- 🎨 **Cal.com design system**: limpio, monocromático, sin emojis
+
+## Stack
+
+| Capa | Tecnología |
+|------|-----------|
+| Frontend | Astro 5 + Tailwind CSS v4 |
+| Backend | API Routes SSR (TypeScript) |
+| BD | PostgreSQL 15 + PostGIS + pgvector |
+| ORM | Drizzle ORM |
+| IA | DeepSeek Chat (V4 Flash) + JSON mode |
+| Mapas | Google Maps JS + Places + Photos |
+| Hosting | Vercel |
+| Analytics | Vercel Web Analytics + Custom DB |
+
+## Quick Start
 
 ```bash
+# Instalar dependencias
 npm install
+
+# Variables de entorno
+cp .env.example .env
+# Editar .env con tus API keys
+
+# Base de datos
+npx drizzle-kit migrate
+
+# Desarrollo
 npm run dev
+# → http://localhost:4321
+
+# Admin
+# → http://localhost:4321/admin
+# Login: admin / admin123
 ```
 
-Open [http://localhost:4321](http://localhost:4321)
+## Documentación
 
-## 🏗️ Architecture
+- [Arquitectura y base de datos](docs/ARCHITECTURE.md)
+- [API Reference](docs/API.md)
+- [Integraciones IA](docs/AI.md)
+- [Flujos de usuario](docs/USER-FLOWS.md)
 
-See [docs/architecture.md](docs/architecture.md) for the full system design.
-
-## 📊 Data Pipeline
-
-Gymcat automatically scrapes gym websites and extracts structured pricing data using DeepSeek AI.
+## Despliegue
 
 ```bash
-# Run a single chain
-npm run pipeline basic-fit
-
-# Run all chains
-npm run pipeline
+npx vercel --prod
 ```
 
-## 🔧 Tech Stack
+Configuración en `vercel.json`:
+- Framework: Astro
+- Build: `astro build`
+- Node.js 22
 
-- **Frontend**: Astro 5 + Tailwind CSS v4
-- **Database**: PostgreSQL + PostGIS + pgvector
-- **AI**: DeepSeek Chat API
-- **Scraping**: Browserless + ScrapingBee
-- **Deploy**: Vercel + GitHub Actions
+## Licencia
 
-## 📁 Project Structure
-
-```
-src/
-├── components/   # UI components (Astro + React islands)
-├── layouts/      # Page layouts
-├── lib/          # Shared utilities (DB, AI, constants)
-├── pages/        # Routes (SSG + SSR)
-└── styles/       # Design system
-
-scripts/
-├── scrape/       # Web scraping engine
-├── pipeline/     # AI parsing + DB ingestion
-└── db/           # Migrations + seed data
-```
-
-## 🌍 Coverage
-
-Phase 1 targets: Barcelona capital (100-200 gyms from 5 major chains)
-Phase 3 expands to: All Cataluña (Girona, Lleida, Tarragona, cities > 50k population)
-
-## 📝 License
-
-Proprietary. All rights reserved.
+Privado — Diego Tovar
