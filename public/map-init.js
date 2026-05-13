@@ -1,8 +1,7 @@
-// Gymcat map initializer — reads coordinates from data attributes
+// Gymcat map initializer — uses Google Maps
 (function() {
   function initMaps() {
-    if (typeof L === 'undefined') {
-      // Retry after 500ms if Leaflet hasn't loaded yet
+    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
       setTimeout(initMaps, 500);
       return;
     }
@@ -16,21 +15,32 @@
       if (!lat || !lng) return;
 
       try {
-        var map = L.map(el).setView([lat, lng], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors',
-          maxZoom: 19,
-        }).addTo(map);
-        L.marker([lat, lng]).addTo(map).bindPopup(name);
+        var position = { lat: lat, lng: lng };
+        var map = new google.maps.Map(el, {
+          center: position,
+          zoom: 15,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+        });
 
-        // Invalidate size after a short delay (fixes rendering in hidden/tab containers)
-        setTimeout(function() { map.invalidateSize(); }, 200);
+        var marker = new google.maps.Marker({
+          position: position,
+          map: map,
+          title: name,
+        });
+
+        if (name) {
+          var infoWindow = new google.maps.InfoWindow({ content: name });
+          marker.addListener('click', function() {
+            infoWindow.open(map, marker);
+          });
+        }
       } catch (e) {
         console.error('Map init failed for', name, e);
       }
     });
   }
 
-  // Start initialization — with retry if L isn't loaded yet
   initMaps();
 })();

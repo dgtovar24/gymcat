@@ -76,75 +76,98 @@ const chainsJSON = JSON.stringify(allChains.map(c => ({ id: c.id, name: c.name, 
   (function() {
     var gyms = JSON.parse(gymsJSON);
     var chainsData = JSON.parse(chainsJSON);
+    var map;
+    var allMarkers = [];
+    var infoWindow;
 
     function initMap() {
-      if (typeof L === 'undefined') { setTimeout(initMap, 100); return; }
+      if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+        setTimeout(initMap, 500);
+        return;
+      }
 
-      var map = L.map('map').setView([41.3874, 2.1686], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
-      }).addTo(map);
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 41.3874, lng: 2.1686 },
+        zoom: 13,
+        mapTypeControl: false,
+        fullscreenControl: true,
+        streetViewControl: false,
+      });
 
-      var markers = [];
+      infoWindow = new google.maps.InfoWindow();
+
+      var bounds = new google.maps.LatLngBounds();
 
       gyms.forEach(function(gym, i) {
         if (!gym.lat || !gym.lng) return;
-        var priceStr = gym.priceFrom ? gym.priceFrom.toFixed(0) + '€/mes' : 'Precio no disponible';
-        var popup = '<div style="font-family:system-ui;max-width:250px;">';
-        if (gym.imageUrl) popup += '<img src="' + gym.imageUrl + '" style="width:100%;height:100px;object-fit:cover;border-radius:4px;margin-bottom:8px;" />';
-        popup += '<h3 style="margin:0 0 4px;font-size:15px;"><a href="/gimnasios/' + gym.slug + '" style="color:#242424;text-decoration:none;">' + gym.name + '</a></h3>';
-        if (gym.chain) popup += '<span style="font-size:11px;color:#888;background:#f0f0f0;padding:2px 8px;border-radius:10px;">' + gym.chain + '</span>';
-        popup += '<p style="margin:6px 0;font-family:monospace;font-weight:600;">' + priceStr + '</p>';
-        if (gym.is24h) popup += '<span style="font-size:11px;color:#22c55e;">24h</span> ';
-        popup += '<p style="margin:4px 0 0;font-size:12px;color:#888;">' + (gym.address || '') + '</p>';
-        popup += '<a href="/gimnasios/' + gym.slug + '" style="display:inline-block;margin-top:8px;font-size:12px;color:#0099ff;">Ver ficha &rarr;</a></div>';
 
-        var marker = L.marker([gym.lat, gym.lng]).bindPopup(popup);
+        var pos = { lat: gym.lat, lng: gym.lng };
+        bounds.extend(pos);
+
+        var priceStr = gym.priceFrom ? gym.priceFrom.toFixed(0) + '€/mes' : 'Precio no disp.';
+
+        var content = '<div style="font-family:system-ui;max-width:250px;">';
+        if (gym.imageUrl) content += '<img src="' + gym.imageUrl + '" style="width:100%;height:100px;object-fit:cover;border-radius:4px;margin-bottom:8px;" />';
+        content += '<h3 style="margin:0 0 4px;font-size:15px;"><a href="/gimnasios/' + gym.slug + '" style="color:#242424;text-decoration:none;">' + gym.name + '</a></h3>';
+        if (gym.chain) content += '<span style="font-size:11px;color:#888;background:#f0f0f0;padding:2px 8px;border-radius:10px;">' + gym.chain + '</span>';
+        content += '<p style="margin:6px 0;font-family:monospace;font-weight:600;">' + priceStr + '</p>';
+        if (gym.is24h) content += '<span style="font-size:11px;color:#22c55e;">24h</span> ';
+        content += '<a href="/gimnasios/' + gym.slug + '" style="display:inline-block;margin-top:8px;font-size:12px;color:#0099ff;">Ver ficha &rarr;</a></div>';
+
+        var marker = new google.maps.Marker({
+          position: pos,
+          map: map,
+          title: gym.name,
+        });
+
         marker._gym = gym;
-        marker.addTo(map);
-        markers.push(marker);
+
+        marker.addListener('click', (function(m, c) {
+          return function() {
+            infoWindow.setContent(c);
+            infoWindow.open(map, m);
+          };
+        })(marker, content));
+
+        allMarkers.push(marker);
       });
 
-      document.getElementById('resultCount').textContent = markers.length + ' gimnasios visibles';
+      document.getElementById('resultCount').textContent = allMarkers.length + ' gimnasios visibles';
 
-      if (markers.length > 0) {
-        var group = L.featureGroup ? L.featureGroup(markers) : null;
-        if (group) map.fitBounds(group.getBounds().pad(0.1));
+      if (allMarkers.length > 0) {
+        map.fitBounds(bounds);
       }
-
-      function getRange(p) {
-        if (p === null || p === undefined) return '?';
-        if (p <= 25) return '0-25';
-        if (p <= 40) return '25-40';
-        if (p <= 60) return '40-60';
-        return '60-100';
-      }
-
-      function applyFilters() {
-        var chainFilter = document.getElementById('filterChain').value;
-        var priceFilter = document.getElementById('filterPrice').value;
-        var filter24h = document.getElementById('filter24h').checked;
-        var count = 0;
-        markers.forEach(function(m) {
-          var g = m._gym;
-          var show = true;
-          if (chainFilter && g.chainSlug !== chainFilter) show = false;
-          if (priceFilter && getRange(g.priceFrom) !== priceFilter) show = false;
-          if (filter24h && !g.is24h) show = false;
-          if (show) { m.addTo(map); count++; } else { m.remove(); }
-        });
-        document.getElementById('resultCount').textContent = count + ' gimnasios visibles';
-      }
-
-      document.getElementById('filterChain').addEventListener('change', applyFilters);
-      document.getElementById('filterPrice').addEventListener('change', applyFilters);
-      document.getElementById('filter24h').addEventListener('change', applyFilters);
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initMap);
-    } else {
-      initMap();
+    function getRange(p) {
+      if (p === null || p === undefined) return '?';
+      if (p <= 25) return '0-25';
+      if (p <= 40) return '25-40';
+      if (p <= 60) return '40-60';
+      return '60-100';
     }
+
+    function applyFilters() {
+      var chainFilter = document.getElementById('filterChain').value;
+      var priceFilter = document.getElementById('filterPrice').value;
+      var filter24h = document.getElementById('filter24h').checked;
+      var count = 0;
+      allMarkers.forEach(function(m) {
+        var g = m._gym;
+        var show = true;
+        if (chainFilter && g.chainSlug !== chainFilter) show = false;
+        if (priceFilter && getRange(g.priceFrom) !== priceFilter) show = false;
+        if (filter24h && !g.is24h) show = false;
+        m.setVisible(show);
+        if (show) count++;
+      });
+      document.getElementById('resultCount').textContent = count + ' gimnasios visibles';
+    }
+
+    document.getElementById('filterChain').addEventListener('change', applyFilters);
+    document.getElementById('filterPrice').addEventListener('change', applyFilters);
+    document.getElementById('filter24h').addEventListener('change', applyFilters);
+
+    initMap();
   })();
 </script>
