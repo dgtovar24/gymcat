@@ -1,6 +1,6 @@
 import { db } from "../src/lib/db";
 import { gyms } from "../src/lib/db/schema";
-import { eq, isNotNull, isNull } from "drizzle-orm";
+import { eq, isNotNull } from "drizzle-orm";
 
 const GMAPS_KEY = "AIzaSyC10drvzhIUxn0bkqg3YQGNhQ0y8Y-EJY4";
 

@@ -1,6 +1,5 @@
 import { db } from "@lib/db";
 import { analyticsEvents } from "@lib/db/schema";
-import { eq, desc, sql, and, gte, count } from "drizzle-orm";
 import crypto from "crypto";
 
 export async function POST({ request }: { request: Request }) {

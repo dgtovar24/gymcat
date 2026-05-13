@@ -7,13 +7,66 @@ export interface Props {
   title?: string;
   description?: string;
   currentPath?: string;
+  image?: string;
+  imageAlt?: string;
+  type?: "website" | "article" | "profile";
+  noindex?: boolean;
+  canonicalPath?: string;
+  structuredData?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
 const {
   title,
   description,
   currentPath = Astro.url?.pathname || "/",
+  image = "/seo/gymcat-og-image.png",
+  imageAlt = "GymCat, comparador de gimnasios en Cataluña",
+  type = "website",
+  noindex = false,
+  canonicalPath,
+  structuredData,
 } = Astro.props;
+
+const siteUrl = "https://gymcat.es";
+const defaultTitle = "GymCat — Comparador de Gimnasios en Cataluña";
+const defaultDescription = "Compara precios reales, instalaciones y horarios de gimnasios en Cataluña. Transparencia total con datos actualizados por IA.";
+const pageTitle = title
+  ? /\bgymcat\b/i.test(title)
+    ? title
+    : `${title} | GymCat`
+  : defaultTitle;
+const pageDescription = description || defaultDescription;
+const canonicalUrl = new URL(canonicalPath || Astro.url.pathname, siteUrl).toString();
+const imageUrl = new URL(image, siteUrl).toString();
+const baseStructuredData: Record<string, unknown>[] = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "GymCat",
+    url: siteUrl,
+    description: defaultDescription,
+    inLanguage: "es-ES",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/gimnasios?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "GymCat",
+    url: siteUrl,
+    logo: `${siteUrl}/GymCatLogo.png`,
+    sameAs: ["https://gymcat.es/quienes-somos"],
+  },
+];
+const pageStructuredData = structuredData
+  ? Array.isArray(structuredData)
+    ? structuredData
+    : [structuredData]
+  : [];
+const jsonLd = [...baseStructuredData, ...pageStructuredData];
 ---
 
 <!doctype html>
@@ -23,38 +76,39 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" href="/favicon.svg" />
-    <link rel="canonical" href={`https://gymcat.es${Astro.url.pathname}`} />
+    <link rel="apple-touch-icon" href="/GymCatLogo.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="canonical" href={canonicalUrl} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&family=Roboto+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <title>{title ? `${title} | GymCat` : "GymCat — Comparador de Gimnasios en Cataluña"}</title>
-    <meta
-      name="description"
-      content={description || "Compara precios reales, instalaciones y horarios de gimnasios en Cataluña. Transparencia total con datos actualizados por IA."}
-    />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large"} />
+    <meta name="theme-color" content="#ffffff" />
 
-    <meta property="og:title" content={title || "GymCat — Comparador de Gimnasios"} />
-    <meta property="og:description" content={description || "Compara precios, instalaciones y horarios de gimnasios en Cataluña."} />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content={`https://gymcat.es${Astro.url.pathname}`} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content="GymCat" />
     <meta property="og:locale" content="es_ES" />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:secure_url" content={imageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={imageAlt} />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title || "GymCat — Comparador de Gimnasios"} />
-    <meta name="twitter:description" content={description || "Compara precios, instalaciones y horarios de gimnasios en Cataluña."} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:image:alt" content={imageAlt} />
 
-    <script type="application/ld+json" is:inline set:html={JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: "GymCat",
-      url: "https://gymcat.es",
-      description: "Comparador inteligente de gimnasios en Cataluña. Precios reales, instalaciones verificadas, reseñas analizadas por IA.",
-      inLanguage: "es",
-    })} />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
 
     <slot name="head" />
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC10drvzhIUxn0bkqg3YQGNhQ0y8Y-EJY4"></script>
@@ -106,10 +160,10 @@ const {
         };
       })();
     </script>
-    <script defer src="https://cdn.vercel-insights.com/v1/script.js" data-endpoint="https://vercel.com/api/speed-insights/v1"></script>
-    <script>
+    <script is:inline defer src="https://cdn.vercel-insights.com/v1/script.js" data-endpoint="https://vercel.com/api/speed-insights/v1"></script>
+    <script is:inline>
       window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
     </script>
-    <script defer src="/_vercel/insights/script.js"></script>
+    <script is:inline defer src="/_vercel/insights/script.js"></script>
   </body>
 </html>

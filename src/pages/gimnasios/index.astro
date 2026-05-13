@@ -11,6 +11,7 @@ const allGyms = await db.select({
   matriculaFee: gyms.matriculaFee, isOpen247: gyms.isOpen247,
   imageUrl: gyms.imageUrl, chainId: gyms.chainId,
   isVerified: gyms.isVerified, verifiedReview: gyms.verifiedReview,
+  hasPermanencia: gyms.hasPermanencia, permanenciaMonths: gyms.permanenciaMonths,
 }).from(gyms).where(eq(gyms.status, "active")).orderBy(asc(gyms.name));
 
 const [allChains, allFacs, allGymFacRows] = await Promise.all([
@@ -28,18 +29,6 @@ for (const r of allGymFacRows) {
   const fac = allFacs.find(f => f.id === r.facilityId);
   if (fac) gymFacMap.get(r.gymId)!.push(fac.slug);
 }
-
-// Province mapping for cities
-const cityProvince: Record<string, string> = {
-  Barcelona: "Barcelona", "L'Hospitalet de Llobregat": "Barcelona", Badalona: "Barcelona",
-  Terrassa: "Barcelona", Sabadell: "Barcelona", Mataró: "Barcelona",
-  "Sant Cugat del Vallès": "Barcelona", "Cornellà de Llobregat": "Barcelona",
-  Granollers: "Barcelona", Manresa: "Barcelona", Vic: "Barcelona",
-  Sitges: "Barcelona", Castelldefels: "Barcelona", "El Prat de Llobregat": "Barcelona",
-  Tarragona: "Tarragona", Reus: "Tarragona",
-  Lleida: "Lleida",
-  Girona: "Girona", Figueres: "Girona", Blanes: "Girona",
-};
 
 // Serialize data for client
 const gymsJSON = JSON.stringify(allGyms.map(g => ({
@@ -94,7 +83,11 @@ const facSVGsJSON = JSON.stringify(facSVGs);
 
 ---
 
-<BaseLayout title="Gimnasios en Cataluña" currentPath="/gimnasios">
+<BaseLayout
+  title="Gimnasios en Cataluña"
+  description="Lista actualizada de gimnasios en Cataluña con precios reales, instalaciones, permanencia, horarios y filtros por ciudad o servicios."
+  currentPath="/gimnasios"
+>
   <section class="res-section-tight" style="background:var(--color-white);">
     <div class="container-xl">
       <h1 style="margin-bottom:4px;" id="page-title">Gimnasios en Catalu&ntilde;a</h1>
@@ -149,7 +142,7 @@ const facSVGsJSON = JSON.stringify(facSVGs);
   </section>
 
   <div id="gymcat-data" style="display:none;" data-gyms={gymsJSON} data-chains={chainsJSON} data-facs={facsJSON} data-facsvgs={facSVGsJSON}></div>
-  <script src="/gym-list.js" defer></script>
+  <script is:inline src="/gym-list.js" defer></script>
 
   <!-- Geolocation: detect user city and update page title -->
   <script is:inline>

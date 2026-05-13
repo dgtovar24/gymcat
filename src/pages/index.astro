@@ -13,7 +13,12 @@ const lastUpdate = latestGym[0]?.updatedAt
   : new Date().toISOString().split("T")[0];
 ---
 
-<BaseLayout title="GymCat — Comparador Inteligente de Gimnasios" description="Encuentra el gimnasio perfecto. Busca por precio, ubicación y servicios con IA.">
+<BaseLayout
+  title="GymCat — Comparador Inteligente de Gimnasios"
+  description="Encuentra el gimnasio perfecto. Busca por precio, ubicación y servicios con IA."
+  image="/seo/gymcat-og-image.png"
+  imageAlt="GymCat ayuda a comparar gimnasios en Cataluña sin letra pequeña"
+>
   <section class="bg-white" style="padding:64px 0 48px 0;">
     <div class="container-xl" style="text-align:center;">
       <div style="display:inline-flex;align-items:center;gap:6px;border-radius:var(--radius-pill);padding:4px 14px;font-size:13px;font-weight:500;color:var(--color-mid-gray);background:var(--color-off-white);margin-bottom:20px;">
@@ -37,7 +42,7 @@ const lastUpdate = latestGym[0]?.updatedAt
       <div id="search-loading" style="display:none;margin-bottom:12px;font-size:13px;color:var(--color-mid-gray);">Buscando con IA...</div>
       <div class="res-flex-col" style="justify-content:center;">
         <a href="/gimnasios" class="btn-primary" style="min-width:180px;text-decoration:none;text-align:center;">Explorar gimnasios</a>
-        <a href="/vs" class="btn-ghost" style="min-width:140px;text-decoration:none;text-align:center;">Comparar VS</a>
+        <a href="/comparar" class="btn-ghost" style="min-width:140px;text-decoration:none;text-align:center;">Comparar VS</a>
       </div>
     </div>
   </section>

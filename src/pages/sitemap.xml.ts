@@ -10,7 +10,7 @@ export async function GET() {
 
   const allGyms = await db.select({ slug: gyms.slug, updatedAt: gyms.updatedAt }).from(gyms).where(eq(gyms.status, "active"));
   const allChains = await db.select({ slug: chains.slug, updatedAt: chains.updatedAt }).from(chains);
-  const allCities = await db.select({ slug: cities.slug, updatedAt: cities.updatedAt }).from(cities);
+  const allCities = await db.select({ slug: cities.slug, updatedAt: cities.createdAt }).from(cities);
   const siteUrl = "https://gymcat.es";
 
   const urls: string[] = [];

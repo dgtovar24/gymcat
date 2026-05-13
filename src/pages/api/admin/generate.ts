@@ -250,16 +250,16 @@ function extractPlaceId(input: string): string {
   if (input.startsWith("ChIJ")) return input;
   // Extract from Google Maps URL: ftid=XXX or 0x...:0x... pattern
   const ftidMatch = input.match(/ftid=([^&]+)/);
-  if (ftidMatch) return decodeURIComponent(ftidMatch[1]);
+  if (ftidMatch?.[1]) return decodeURIComponent(ftidMatch[1]);
   // Extract hex Place ID from !1s... pattern
   const hexMatch = input.match(/!1s(0x[0-9a-fA-F]+):(0x[0-9a-fA-F]+)/);
-  if (hexMatch) return hexMatch[1] + ":" + hexMatch[2];
+  if (hexMatch?.[1] && hexMatch[2]) return hexMatch[1] + ":" + hexMatch[2];
   // Extract from /place/XXX/ pattern
   const idMatch = input.match(/place_id[:=]([^&]+)/) || input.match(/\/place\/[^/]+\/[^/]+\/([^/?]+)/);
-  if (idMatch) return idMatch[1];
+  if (idMatch?.[1]) return idMatch[1];
   // Extract ChIJ pattern
   const chijMatch = input.match(/(ChIJ[a-zA-Z0-9_-]{20,})/);
-  if (chijMatch) return chijMatch[1];
+  if (chijMatch?.[1]) return chijMatch[1];
   // If looks like an ID
   if (/^[A-Za-z0-9_-]{10,}$/.test(input.trim())) return input.trim();
   return "";

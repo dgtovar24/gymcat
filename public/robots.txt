@@ -5,3 +5,4 @@ Sitemap: https://gymcat.es/sitemap.xml
 # Disallow admin
 Disallow: /admin
 Disallow: /api
+Disallow: /_image

@@ -40,7 +40,6 @@ if (gym1Slug && gym2Slug) {
 }
 
 const allFacilities = await db.select().from(facilities).orderBy(asc(facilities.name));
-const gymsJSON = JSON.stringify(allGyms.map(g => ({ id: g.id, name: g.name, slug: g.slug, imageUrl: g.imageUrl })));
 ---
 
 <BaseLayout title="Comparador de Gimnasios" description="Compara dos gimnasios cara a cara: precios, instalaciones y valoraciones.">

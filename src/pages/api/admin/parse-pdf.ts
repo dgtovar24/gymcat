@@ -100,14 +100,14 @@ function extractPDFText(buffer: Buffer): string {
 
   // Find text between BT and ET markers
   const btRegex = /BT\s*([\s\S]*?)\s*ET/g;
-  let match;
+  let match: RegExpExecArray | null;
   while ((match = btRegex.exec(str)) !== null) {
-    const block = match[1];
+    const block = match[1] || "";
     // Extract text within parentheses: (text) Tj
     const tjRegex = /\(([^)]*)\)\s*Tj/g;
-    let tjMatch;
+    let tjMatch: RegExpExecArray | null;
     while ((tjMatch = tjRegex.exec(block)) !== null) {
-      texts.push(tjMatch[1]);
+      if (tjMatch[1]) texts.push(tjMatch[1]);
     }
   }
 

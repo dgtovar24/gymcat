@@ -21,14 +21,42 @@ const city = gym.cityId ? (await db.select().from(cities).where(eq(cities.id, gy
 const monthlyLow = gym.monthlyPriceLow ? Number(gym.monthlyPriceLow) : 0;
 const matricula = gym.matriculaFee ? Number(gym.matriculaFee) : 0;
 const annualMaint = gym.annualMaintenanceFee ? Number(gym.annualMaintenanceFee) : 0;
-const total12Months = (monthlyLow * 12) + matricula + annualMaint;
-const pageTitle = `${gym.name} — Precios, instalaciones y opiniones | Gymcat`;
-const pageDescription = gym.shortDescription || `${gym.name} en ${city?.name || "Cataluña"}. Precio desde ${monthlyLow}€/mes.`;
+const pageTitle = gym.metaTitle || `${gym.name} — Precios, instalaciones y opiniones`;
+const pageDescription = gym.metaDescription || gym.shortDescription || `${gym.name} en ${city?.name || "Cataluña"}. Precio desde ${monthlyLow}€/mes.`;
+const pageImage = images[0]?.imageUrl || gym.imageUrl || "/seo/gymcat-og-image.png";
 
 // Coordinates for map
 const gymLat = gym.lat ? Number(gym.lat) : 0;
 const gymLng = gym.lng ? Number(gym.lng) : 0;
 const hasCoords = gymLat !== 0 && gymLng !== 0;
+
+const gymStructuredData: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": "HealthClub",
+  name: gym.name,
+  url: `https://gymcat.es/gimnasios/${gym.slug}`,
+  image: pageImage.startsWith("http") ? pageImage : `https://gymcat.es${pageImage}`,
+  description: pageDescription,
+  address: gym.address
+    ? {
+        "@type": "PostalAddress",
+        streetAddress: gym.address,
+        addressLocality: city?.name || undefined,
+        addressRegion: "Cataluña",
+        addressCountry: "ES",
+      }
+    : undefined,
+  geo: hasCoords
+    ? {
+        "@type": "GeoCoordinates",
+        latitude: gymLat,
+        longitude: gymLng,
+      }
+    : undefined,
+  telephone: gym.phone || undefined,
+  sameAs: gym.website ? [gym.website] : undefined,
+  priceRange: monthlyLow > 0 ? `Desde ${monthlyLow.toFixed(0)} EUR al mes` : undefined,
+};
 
 // Sparkline
 const maxPrice = Math.max(...gymPrices.map(x => Number(x.amount)), 1);
@@ -75,7 +103,14 @@ function facIcon(icon: string | null) {
 }
 ---
 
-<BaseLayout title={pageTitle} description={pageDescription} currentPath="/gimnasios">
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  currentPath="/gimnasios"
+  image={pageImage}
+  imageAlt={`${gym.name} en GymCat`}
+  structuredData={gymStructuredData}
+>
   <section style="padding:40px 0 0 0;background:var(--color-white);">
     <div class="container-xl">
       <a href="/gimnasios" style="font-size:14px;font-weight:500;color:var(--color-link-blue);text-decoration:underline;">&larr; Volver al listado</a>
@@ -217,7 +252,7 @@ function facIcon(icon: string | null) {
         <h4 style="font-size:13px;font-weight:600;color:var(--color-charcoal);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">Ubicaci&oacute;n</h4>
         <div id="gym-map" data-map-lat={gymLat} data-map-lng={gymLng} data-map-name={gym.name}
           style="width:100%;height:280px;border-radius:var(--radius-12);overflow:hidden;box-shadow:var(--shadow-card);"></div>
-        <script src="/map-init.js" defer></script>
+        <script is:inline src="/map-init.js" defer></script>
       </div>
     </section>
   )}

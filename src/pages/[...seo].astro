@@ -3,8 +3,8 @@
 // /gimnasios/[city] and /cadenas/[chain]
 import BaseLayout from "@layouts/BaseLayout.astro";
 import { db } from "@lib/db";
-import { gyms, chains, cities, gymFacilities, facilities } from "@lib/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { gyms, chains, cities } from "@lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export const prerender = false;
 
@@ -12,7 +12,7 @@ const { seo } = Astro.params;
 if (!seo) return Astro.redirect("/gimnasios");
 
 // Determine if it's a city or chain page
-const allCities = await db.select({ slug: cities.slug, name: cities.name }).from(cities);
+const allCities = await db.select({ id: cities.id, slug: cities.slug, name: cities.name }).from(cities);
 const allChains = await db.select({ slug: chains.slug, name: chains.name, id: chains.id }).from(chains);
 
 const cityMatch = allCities.find(c => c.slug === seo);
@@ -20,14 +20,15 @@ const chainMatch = allChains.find(c => c.slug === seo);
 
 let title = "";
 let description = "";
-let filteredGyms: any[] = [];
+let filteredGyms: (typeof gyms.$inferSelect)[] = [];
 
 if (cityMatch) {
   title = `Gimnasios en ${cityMatch.name} — Compara Precios | GymCat`;
   description = `Encuentra los mejores gimnasios en ${cityMatch.name}. Compara precios, instalaciones y horarios. ${cityMatch.name} al mejor precio.`;
   const cityData = await db.select({ id: cities.id }).from(cities).where(eq(cities.slug, seo)).limit(1);
-  if (cityData.length > 0) {
-    filteredGyms = await db.select().from(gyms).where(eq(gyms.cityId, cityData[0].id));
+  const cityId = cityData[0]?.id;
+  if (cityId) {
+    filteredGyms = await db.select().from(gyms).where(eq(gyms.cityId, cityId));
   }
 } else if (chainMatch) {
   title = `Gimnasios ${chainMatch.name} — Precios y Opiniones | GymCat`;
@@ -37,18 +38,6 @@ if (cityMatch) {
   return Astro.redirect("/gimnasios");
 }
 
-const allFacilities = await db.select().from(facilities);
-const gymsJSON = JSON.stringify(filteredGyms.map(g => ({
-  id: g.id, name: g.name, slug: g.slug, address: g.address,
-  imageUrl: g.imageUrl, chainId: g.chainId, cityId: g.cityId,
-  monthlyPriceLow: g.monthlyPriceLow ? Number(g.monthlyPriceLow) : null,
-  monthlyPriceHigh: g.monthlyPriceHigh ? Number(g.monthlyPriceHigh) : null,
-  matriculaFee: g.matriculaFee ? Number(g.matriculaFee) : null,
-  isOpen247: g.isOpen247,
-})));
-const facilitiesJSON = JSON.stringify(allFacilities.map(f => ({ id: f.id, name: f.name, slug: f.slug, icon: f.icon })));
-const chainsJSON = JSON.stringify(allChains.map(c => ({ id: c.id, name: c.name, slug: c.slug })));
-const citiesJSON = JSON.stringify(allCities.map(c => ({ id: c.id, name: c.name, slug: c.slug })));
 ---
 
 <BaseLayout title={title} description={description}>
@@ -64,8 +53,6 @@ const citiesJSON = JSON.stringify(allCities.map(c => ({ id: c.id, name: c.name, 
 
       <div class="res-grid res-grid-3" style="gap:16px;" id="gym-list">
         {filteredGyms.map(gym => {
-          const chainN = chainMatch?.name || null;
-          const cityN = cityMatch?.name || null;
           const price = gym.monthlyPriceLow ? Number(gym.monthlyPriceLow).toFixed(0) : null;
           return (
             <a href={`/gimnasios/${gym.slug}`} style="text-decoration:none;color:inherit;">

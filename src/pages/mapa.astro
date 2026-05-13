@@ -31,7 +31,11 @@ const gymsJSON = JSON.stringify(allGyms.map(g => ({
 const chainsJSON = JSON.stringify(allChains.map(c => ({ id: c.id, name: c.name, slug: c.slug })));
 ---
 
-<BaseLayout title="Mapa de Gimnasios" currentPath="/mapa">
+<BaseLayout
+  title="Mapa de Gimnasios"
+  description="Encuentra gimnasios cerca de ti en el mapa de GymCat. Filtra por cadena, precio y gimnasios abiertos 24 horas."
+  currentPath="/mapa"
+>
   <section class="map-page">
     <style>
       .map-page { padding: 64px 0 0; min-height: 100vh; display: flex; flex-direction: column; }
