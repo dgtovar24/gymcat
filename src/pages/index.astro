@@ -93,7 +93,8 @@ const lastUpdate = latestGym[0]?.updatedAt
         var data = await res.json();
         var f = data.filters || {};
         var params = new URLSearchParams();
-        params.set('q', q);
+        // Only set search bar text if AI detected a gym name (short query)
+        if (data.searchBarText) params.set('q', data.searchBarText);
         if (f.facilities && f.facilities.length) params.set('fac', f.facilities.join(','));
         if (f.is24h) params.set('24h', '1');
         if (f.maxPrice) params.set('max', f.maxPrice);

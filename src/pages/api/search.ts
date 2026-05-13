@@ -59,10 +59,13 @@ Responde SOLO JSON válido. Sin markdown.`;
       return json({ filters: {}, explanation: query, query, fallback: "parse-error" });
     }
 
-    return json({ filters, explanation: filters.explanation || query, query });
+    // Only pass query to search bar if it looks like a gym name (1-3 words)
+    const searchBarText = query.split(" ").length <= 3 ? query : "";
+
+    return json({ filters, explanation: filters.explanation || query, query, searchBarText });
 
   } catch (_error) {
-    return json({ filters: {}, explanation: "", query: "", fallback: "error" });
+    return json({ filters: {}, explanation: "", query: "", searchBarText: "", fallback: "error" });
   }
 }
 
