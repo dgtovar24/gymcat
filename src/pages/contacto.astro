@@ -34,7 +34,7 @@ if (Astro.request.method === "POST") {
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-              from: "GymCat <contacto@gymcat.es>",
+              from: "GymCat <noreply@gymcat.es>",
               to: emailTo,
               subject: `GymCat: ${subject}`,
               text: fullBody,
